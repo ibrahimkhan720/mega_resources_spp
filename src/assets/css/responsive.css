@@ -1,0 +1,214 @@
+@media (max-width: 991px) {
+
+    .main-hero-section{
+        padding-left: 2rem ;
+        padding-right: 2rem ;
+    }
+
+    .mega-container-wrapper {
+        background-color: #f3f6fb; 
+        padding: 30px 50px;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    .heroSection {
+        text-align: center; 
+        padding: 2rem 1rem;
+    }
+
+    .pointsListContainer {
+        justify-content: center !important; 
+    }
+
+    .btnView {
+        margin-left: 0.5rem; 
+    }
+
+    .iconCircle {
+       width: 50px !important;
+        height: 50px !important;
+        font-size: 1.1rem !important;
+        margin: 0 auto 0.5rem; 
+    }
+
+    .icons {
+       justify-content: center;
+    }
+
+
+    .iconCircleLarge {
+        width: 65px !important;
+        height: 65px !important;
+        font-size: 1.5rem !important;
+    }
+
+    .modal-icons-container {
+        gap: 15px; 
+        margin-bottom: 25px;
+        flex-wrap: wrap; 
+    }
+
+    
+    .rewardCardItem {
+        padding: 15px !important;
+    }
+
+    .rewardCardItem p {
+        font-size: 12px;
+    }
+
+ 
+    .btn-claim, .btn-redeem {
+        width: 100%; 
+        font-size: 12px;
+    }
+
+    /* Heading thodi choti */
+    .innerModal h4 {
+        font-size: 1.2rem;
+    }
+
+
+    h2.text-center {
+        font-size: 1.5rem;
+        margin: 20px 0 !important;
+    }
+
+    .annual-leave-container { padding: 15px; }
+    .leave-content-row { 
+        flex-direction: flex; 
+        gap: 30px; 
+    }
+    .leave-card { padding: 20px; }
+    .mega-container-wrapper { padding: 20px 15px; }
+    .mega-card { padding: 20px; }
+
+    .staff_points_plan {
+         padding: 0 3rem;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .main-hero-section{
+        padding-left: 2rem ;
+        padding-right: 2rem ;
+    }
+
+    .mega-container-wrapper {
+        background-color: #f3f6fb; 
+        padding: 30px 50px;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    .heroSection {
+        text-align: center; 
+        padding: 2rem 1rem;
+    }
+
+    .pointsListContainer {
+        justify-content: center !important; 
+    }
+
+    .btnView {
+        margin-left: 0.5rem; 
+    }
+
+    .iconCircle {
+       width: 50px !important;
+        height: 50px !important;
+        font-size: 1.1rem !important;
+        margin: 0 auto 0.5rem; 
+    }
+
+    .icons {
+       justify-content: center;
+    }
+
+
+    .iconCircleLarge {
+        width: 65px !important;
+        height: 65px !important;
+        font-size: 1.5rem !important;
+    }
+
+    .modal-icons-container {
+        gap: 15px; 
+        margin-bottom: 25px;
+        flex-wrap: wrap; 
+    }
+
+    
+    .rewardCardItem {
+        padding: 15px !important;
+    }
+
+    .rewardCardItem p {
+        font-size: 12px;
+    }
+
+ 
+    .btn-claim, .btn-redeem {
+        width: 100%; 
+        font-size: 12px;
+    }
+
+    /* Heading thodi choti */
+    .innerModal h4 {
+        font-size: 1.2rem;
+    }
+
+
+    h2.text-center {
+        font-size: 1.5rem;
+        margin: 20px 0 !important;
+    }
+
+    .annual-leave-container { padding: 15px; }
+    .leave-content-row { 
+        flex-direction: column; 
+        gap: 30px; 
+    }
+    .leave-card { padding: 20px; }
+    .mega-container-wrapper { padding: 20px 15px; }
+    .mega-card { padding: 20px; }
+
+    .staff_points_plan{
+      padding: 0 3rem;
+    }
+
+    .main_card_banefits {
+        padding: 30px 1rem;
+        margin-top: 0 !important;
+    }
+
+    .banefits_sub_Card {
+        padding: 30px 1rem;
+    }
+
+    .main-cards-wrapper{
+        padding: 30px 1rem;
+    }
+
+    .ceo-banner { padding: 2rem !important; }
+
+}
+
+
+@media (max-width: 576px) {
+    .iconCircleLarge {
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 1.1rem !important;
+    }
+    
+    .modal-icons-container {
+        gap: 10px;
+    }
+
+    .innerModal {
+        padding: 1.5rem !important; 
+    }
+}
