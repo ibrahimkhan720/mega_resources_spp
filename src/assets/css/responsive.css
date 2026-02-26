@@ -1,8 +1,8 @@
 @media (max-width: 991px) {
 
     .main-hero-section{
-        padding-left: 2rem ;
-        padding-right: 2rem ;
+        padding-left: 2rem !important ;
+        padding-right: 2rem !important ;
     }
 
     .mega-container-wrapper {
@@ -85,7 +85,7 @@
     .mega-card { padding: 20px; }
 
     .staff_points_plan {
-         padding: 0 3rem;
+         padding: 0 2rem !important;
     }
 }
 
@@ -180,12 +180,12 @@
     }
 
     .main_card_banefits {
-        padding: 30px 1rem;
+        padding: 30px 1rem !important;
         margin-top: 0 !important;
     }
 
     .banefits_sub_Card {
-        padding: 30px 1rem;
+        padding: 30px 1rem !important;
     }
 
     .main-cards-wrapper{
