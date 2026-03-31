@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock, faCalendarAlt, faTimes } from '@fortawesome/free-solid-svg-icons'
 import logoimage from "../../assets/images/5ffac5b492ec250053baf0085380433da86f99d5.png"
 import Image from 'next/image'
+import {annualleave} from "@/Api/AnnualLeavepi";
 
 const PalmTree = "🌴"; 
 const Seedling = "🌱";
@@ -13,25 +14,91 @@ export class Annual_Leave extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showModal: false
+      showModal: false,
+      form: {
+        start_date: "",
+        end_date: "",
+        reason: "",
+        emergency_number: ""
+      },
+      errors: {},
+      successMessage: ""
     };
   }
 
-  // --- Background Scroll Control Logic ---
+  handleChange = (e) => {
+    const { name, value } = e.target;
+    this.setState({
+      form: {
+        ...this.state.form,
+        [name]: value
+      }
+    });
+  };
+  
   componentDidUpdate(prevProps, prevState) {
-    // Agar showModal change hua hai
     if (prevState.showModal !== this.state.showModal) {
       if (this.state.showModal) {
-        // Jab modal open ho: body scroll band
         document.body.style.overflow = 'hidden';
       } else {
-        // Jab modal close ho: body scroll wapas on
         document.body.style.overflow = 'unset';
       }
     }
   }
 
-  // Component unmount hote waqt cleanup (zaroori hai taake doosre pages par masla na ho)
+  validateForm = () => {
+    const { start_date, end_date, reason, emergency_number } = this.state.form;
+    let errors = {};
+  
+    if (!start_date) {
+      errors.start_date = "Start date is required";
+    } else if (new Date(start_date) < new Date().setHours(0,0,0,0)) {
+      errors.start_date = "Start date cannot be in the past";
+    }
+  
+    if (!end_date) {
+      errors.end_date = "End date is required";
+    } else if (new Date(end_date) < new Date(start_date)) {
+      errors.end_date = "End date must be after start date";
+    }
+  
+    if (!reason) {
+      errors.reason = "Reason is required";
+    }
+  
+    if (!emergency_number) {
+      errors.emergency_number = "Emergency number is required";
+    }
+  
+    this.setState({ errors });
+    return Object.keys(errors).length === 0;
+  };
+
+  handleSubmit = async () => {
+    if (!this.validateForm()) return;
+  
+    try {
+      await annualleave(this.state.form);
+  
+      this.setState({
+        successMessage: "Leave sent successfully",
+        form: {
+          start_date: "",
+          end_date: "",
+          reason: "",
+          emergency_number: ""
+        },
+        errors: {}
+      });
+  
+    } catch (error) {
+      console.error(error);
+      this.setState({
+        successMessage: "Something went wrong"
+      });
+    }
+  };
+
   componentWillUnmount() {
     document.body.style.overflow = 'unset';
   }
@@ -75,7 +142,6 @@ export class Annual_Leave extends Component {
           </div>
         </div>
 
-        {/* --- ONE TEAM VISION BAR --- */}
         <div className="vision-bar-wrapper text-center">
             <Image 
                 src={logoimage} 
@@ -85,7 +151,6 @@ export class Annual_Leave extends Component {
             />
         </div>
 
-        {/* --- POPUP MODAL --- */}
         {this.state.showModal && (
           <div className="custom-modal-overlay">
             <div className="custom-modal-content">
@@ -100,14 +165,79 @@ export class Annual_Leave extends Component {
               </div>
               <p className="modal-subtext">Fill out the form below to request time off. Your manager will be notified.</p>
               <div className="modal-body-form">
-                <div className="form-group-custom"><label>Start Date</label><input type="date" className="form-control-custom" /></div>
-                <div className="form-group-custom"><label>End Date</label><input type="date" className="form-control-custom" /></div>
-                <div className="form-group-custom"><label>Reason for Leave</label><textarea className="form-control-custom" rows="3" placeholder='Please provide a brief reason for your leave request...'></textarea></div>
-                <div className="form-group-custom"><label>Emergency Contact Number</label><input type="text" className="form-control-custom" placeholder='+44 7XXX XXXXXX' /></div>
-              </div>
+
+                <div className="form-group-custom">
+                  <label>Start Date</label>
+                  <input
+                    type="date"
+                    name="start_date"
+                    className="form-control-custom"
+                    value={this.state.form.start_date}
+                    onChange={this.handleChange}
+                  />
+                  {this.state.errors?.start_date && (
+                    <small className="text-danger">{this.state.errors.start_date}</small>
+                  )}
+                </div>
+
+                <div className="form-group-custom">
+                  <label>End Date</label>
+                  <input
+                    type="date"
+                    name="end_date"
+                    className="form-control-custom"
+                    value={this.state.form.end_date}
+                    onChange={this.handleChange}
+                  />
+                  {this.state.errors?.end_date && (
+                    <small className="text-danger">{this.state.errors.end_date}</small>
+                  )}
+                </div>
+
+                <div className="form-group-custom">
+                  <label>Reason for Leave</label>
+                  <textarea
+                    name="reason"
+                    className="form-control-custom"
+                    rows="3"
+                    value={this.state.form.reason}
+                    onChange={this.handleChange}
+                    placeholder="Please provide a brief reason..."
+                  />
+                  {this.state.errors?.reason && (
+                    <small className="text-danger">{this.state.errors.reason}</small>
+                  )}
+                </div>
+
+                <div className="form-group-custom">
+                  <label>Emergency Contact Number</label>
+                  <input
+                    type="text"
+                    name="emergency_number"
+                    className="form-control-custom"
+                    value={this.state.form.emergency_number}
+                    onChange={this.handleChange}
+                    placeholder="+44 7XXX XXXXXX"
+                  />
+                  {this.state.errors?.emergency_number && (
+                    <small className="text-danger">{this.state.errors.emergency_number}</small>
+                  )}
+                </div>
+
+                </div>
+                
+                {this.state.successMessage && (
+                <div className="alert alert-success w-100 text-center">
+                  {this.state.successMessage}
+                </div>
+              )}
               <div className="modal-footer-row">
-                <button className="btn-cancel-modal" onClick={this.toggleModal}>Cancel</button>
-                <button className="btn-submit-modal">Submit Request</button>
+              <button className="btn-cancel-modal" onClick={this.toggleModal}>
+                Cancel
+              </button>
+              <button className="btn-submit-modal" onClick={this.handleSubmit}>
+                Submit Request
+              </button>
               </div>
             </div>
           </div>
