@@ -5,6 +5,7 @@ import "../assets/css/animation.css";
 import "../assets/css/responsive.css";
 
 import Navbar from "@/component/Navbar/Navbar";
+import Login from "@/component/Login/Login";
 
 
 const geistSans = Geist({
@@ -30,7 +31,7 @@ export default function RootLayout({ children }) {
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        
+        {/* <Login/> */}
         {children}
       </body>
     </html>

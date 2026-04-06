@@ -2,26 +2,86 @@
 
 import React, { Component } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import { loginUser } from '../../Api/Loginapi'; 
+import navlogo from "../../assets/images/b25932c7e01c030a3fff68a60dfaebd079f78f6b (1).avif";
+import Image from 'next/image';
 
 export class Login extends Component {
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      email: '',
+      password: '',
+      error: ''
+    };
+  }
+
+  handleChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value,
+      error: '' 
+    });
+  }
+
+  handleSubmit = async (e) => {
+    e.preventDefault();
+    const { email, password } = this.state;
+
+    if (!email || !password) {
+      this.setState({ error: "Please enter both Staff ID and Password." });
+      return;
+    }
+
+    try {
+      const res = await loginUser({
+        email,
+        password
+      });
+
+      localStorage.setItem("token", res.token);
+      window.location.href = "/";
+
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Login failed. Please check your credentials.";
+      this.setState({ error: errorMessage });
+      console.log("Login Error:", error.response?.data);
+    }
+  }
+
   render() {
     return (
       <div className="login-wrapper">
         <div className="glass-card col-11 col-sm-8 col-md-5 col-lg-4">
           
           <div className="text-center mb-4">
-            <h2 className="logo-text">MEGA</h2>
-            <p className="subtitle">Nursing & Care Portal</p>
+           <Image 
+              src={navlogo}
+              alt="Mega Nursing Logo" 
+              style={{ height: '65px', width: 'auto' }} 
+              className="d-inline-block align-top"
+              priority 
+            />
           </div>
 
-          <form>
+          {this.state.error && (
+            <div className="alert alert-danger py-2 text-center" style={{ fontSize: '14px' }}>
+              <i className="fas fa-exclamation-circle me-2"></i>
+              {this.state.error}
+            </div>
+          )}
+
+          <form onSubmit={this.handleSubmit}>
+
             <div className="mb-3">
               <label className="form-label text-white fw-bold">Staff ID / Email</label>
               <input 
                 type="text" 
-                className="form-control custom-input" 
-                placeholder="Enter your ID" 
+                name="email"
+                className={`form-control custom-input ${this.state.error ? 'is-invalid' : ''}`} 
+                placeholder="Enter your ID"
+                onChange={this.handleChange}
               />
             </div>
 
@@ -29,8 +89,10 @@ export class Login extends Component {
               <label className="form-label text-white fw-bold">Password</label>
               <input 
                 type="password" 
-                className="form-control custom-input" 
-                placeholder="••••••••" 
+                name="password"
+                className={`form-control custom-input ${this.state.error ? 'is-invalid' : ''}`} 
+                placeholder="••••••••"
+                onChange={this.handleChange}
               />
             </div>
 
@@ -45,7 +107,6 @@ export class Login extends Component {
                   Remember Me
                 </label>
               </div>
-              <a href="#" className="forgot-link">Forgot Password?</a>
             </div>
 
             <button type="submit" className="btn-login w-100">
@@ -55,7 +116,7 @@ export class Login extends Component {
         </div>
 
         <div className="footer-tagline">
-           <p>One Team | One Vision | One Company</p>
+            <p>One Team | One Vision | One Company</p>
         </div>
       </div>
     )
