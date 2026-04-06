@@ -75,7 +75,6 @@ export class Annual_Leave extends Component {
           </div>
         </div>
 
-        {/* --- ONE TEAM VISION BAR --- */}
         <div className="vision-bar-wrapper text-center">
             <Image 
                 src={logoimage} 
@@ -85,7 +84,6 @@ export class Annual_Leave extends Component {
             />
         </div>
 
-        {/* --- POPUP MODAL --- */}
         {this.state.showModal && (
           <div className="custom-modal-overlay">
             <div className="custom-modal-content">

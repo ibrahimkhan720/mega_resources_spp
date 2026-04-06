@@ -1178,3 +1178,90 @@ input[type=number] {
 .count-circle {
     width: 35px; height: 35px; display: flex; alignItems: center; justifyContent: center;
 }
+
+
+.login-wrapper {
+    height: 100vh;
+    width: 100%;
+    background: linear-gradient(135deg, #001f3f 0%, #001a33 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.logo-text {
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.custom-input {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.custom-input::placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.custom-checkbox {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.custom-checkbox:checked {
+    background-color: #1e90ff !important;
+    border-color: #1e90ff !important;
+}
+
+.forgot-link {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.forgot-link:hover {
+    color: #ffffff;
+}
+
+.btn-login {
+    background: linear-gradient(45deg, #1e90ff, #0056b3);
+    color: #fff;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: 0.3s ease;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.footer-tagline {
+    position: absolute;
+    bottom: 20px;
+    text-align: center;
+    width: 100%;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+}
