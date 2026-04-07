@@ -8,19 +8,17 @@ import { logoutUser } from "../../Api/Logoutapi";
 export class Navbar extends Component {
 
   handleLogout = async () => {
-    try {
-      // await logoutUser();
-      
-      localStorage.removeItem("token");
-      
-      window.location.href = "/login";
-      
-    } catch (error) {
-      // console.log("Logout Error:", error);
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
+  try {
+    // await logoutUser(); // 👈 isko uncomment karo
+    
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    
+  } catch (error) {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
   }
+}
 
   render() {
     return (

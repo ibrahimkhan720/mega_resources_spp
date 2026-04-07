@@ -7,7 +7,7 @@ export const logoutUser = async () => {
     const res = await api.post("/staff/logout", {}, {
       headers: {
         'Content-Type': 'application/json', 
-        'Authorization': `Bearer ${token}`
+        'X-Authorization': `${token}`
       }
     });
     return res.data;
