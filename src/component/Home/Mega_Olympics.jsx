@@ -1,92 +1,143 @@
 "use client"
 
-import React, { Component } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircle } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faDownload } from '@fortawesome/free-solid-svg-icons'
+import { getPolicies } from "../../Api/Policiesapi" 
+import { POLICY_FILE_URL } from "../../utility/policiesimage" 
 
-export class Mega_Olympics extends Component {
-  render() {
-    return (
-      <div className="mega-container-wrapper">
-        
-        {/* --- NEWS BAR (Top Navy Bar) --- */}
-        <div className="mega-news-bar d-flex align-items-center justify-content-between">
-          <div className="d-flex align-items-center ">
-            <span className="news-label">NEWS</span>
-            <span className="news-headline">Mega Olympics 2026 - Are you ready?</span>
-          </div>
-          <div className="news-end-dot">
-             <FontAwesomeIcon icon={faCircle} />
-          </div>
+const Mega_Olympics = () => {
+  const [policies, setPolicies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const meetings = [
+  { id: 1, day: "30", month: "DEC", weekday: "WED", title: "Staff Meeting 1", time: "09:30am" },
+  { id: 2, day: "31", month: "DEC", weekday: "THU", title: "Staff Meeting 2", time: "10:30am" },
+  { id: 3, day: "01", month: "JAN", weekday: "FRI", title: "Project Update", time: "11:00am" },
+];
+
+  useEffect(() => {
+    const fetchPolicies = async () => {
+      try {
+        const data = await getPolicies();
+        if (data && data.success) {
+          setPolicies(data.info);
+        }
+      } catch (error) {
+        console.error("Data fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPolicies();
+  }, []);
+
+  const handleDownload = (filePath, displayTitle) => {
+    const fullUrl = `${POLICY_FILE_URL}${filePath}`;
+    const link = document.createElement('a');
+    link.href = fullUrl;
+    link.target = "_blank"; 
+    link.download = `${displayTitle}.pdf`; 
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Common styling for scrollable cards
+  const cardStyle = {
+    height: "28rem",
+    overflowY: "auto",
+    padding: "20px",
+    borderRadius: "12px",
+    backgroundColor: "#fff",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.05)"
+  };
+
+  const headerStyle = {
+    position: "sticky",
+    top: "0",
+    backgroundColor: "#fff",
+    zIndex: "10",
+    paddingBottom: "15px",
+    borderBottom: "2px solid #f8f9fa",
+    marginBottom: "15px"
+  };
+
+  return (
+    <div className="mega-container-wrapper" style={{ padding: "30px 6rem 0 !important" }}>
+      
+      {/* NEWS BAR */}
+      <div className="mega-news-bar d-flex align-items-center justify-content-between mb-4">
+        <div className="d-flex align-items-center ">
+          <span className="news-label">NEWS</span>
+          <span className="news-headline ml-2">Mega Olympics 2026 - Are you ready?</span>
         </div>
-
-        {/* --- MAIN GRID (Meetings & Policies) --- */}
-        <div className="row g-4 mt-2">
-          
-          {/* Meetings Card */}
-          <div className="col-lg-6">
-            <div className="mega-card ">
-              <div className="card-header-flex">
-                <h2 className="section-title">Meetings</h2>
-                <span className="header-dot"></span>
-              </div>
-
-              <div className="meetings-content">
-                {/* Item 1 */}
-                <div className="meeting-row d-flex align-items-start">
-                  <div className="date-box">
-                    <div className="month">WED</div>
-                    <div className="day">30</div>
-                    <div className="month">DEC</div>
-                  </div>
-                  <div className="meeting-text">
-                    <h3 className="meeting-name">Staff Meeting <span className="sub-type">- Teams</span></h3>
-                    <p className="meeting-time">09:30am</p>
-                  </div>
-                </div>
-
-                {/* Item 2 */}
-                <div className="meeting-row d-flex align-items-start">
-                  <div className="date-box">
-                    <div className="month">THU</div>
-                    <div className="day">31</div>
-                    <div className="month">DEC</div>
-                  </div>
-                  <div className="meeting-text">
-                    <h3 className="meeting-name">Appraisal Meeting <span className="sub-type">- Teams</span></h3>
-                    <p className="meeting-time">09:30am</p>
-                  </div>
-                </div>
-              </div>
-
-              <button className="view-all-link">View all</button>
-            </div>
-          </div>
-
-          {/* Policies Card */}
-          <div className="col-lg-6">
-            <div className="mega-card" style={{ height: "25rem" }}>
-              <div className="card-header-flex">
-                <h2 className="section-title">Policies</h2>
-                <span className="header-dot"></span>
-              </div>
-
-              <div className="policies-scroll-list">
-                <div className="policy-item">Employee Handbook</div>
-                <div className="policy-item">Safeguarding Policy</div>
-                <div className="policy-item">Mental Capacity Act Policy</div>
-                <div className="policy-item">Moving & Handling Policy</div>
-                <div className="policy-item">Whatsapp Policy</div>
-                <div className="policy-item">Lone Working Policy and Procedure</div>
-                <div className="policy-item">Code of Conduct Policy</div>
-              </div>
-            </div>
-          </div>
-
-        </div>
+        <div className="news-end-dot"><FontAwesomeIcon icon={faCircle} /></div>
       </div>
-    )
-  }
+
+      <div className="row g-4">
+        
+        {/* MEETINGS SECTION (With Fixed Loop) */}
+        <div className="col-lg-6">
+          <div className="mega-card" style={cardStyle}>
+            <div className="card-header-flex" style={headerStyle}>
+              <h2 className="section-title m-0">Meetings</h2>
+              <span className="header-dot"></span>
+            </div>
+            
+           <div className="meetings-content">
+              {meetings.map((item) => (
+                <div key={item.id} className="meeting-row d-flex align-items-start mb-3 border-bottom pb-2">
+                  <div className="date-box">
+                    <div className="month">{item.weekday}</div>
+                    <div className="day">{item.day}</div>
+                    <div className="month">{item.month}</div>
+                  </div>
+                  <div className="meeting-text">
+                    <h3 className="meeting-name">{item.title}</h3>
+                    <p className="meeting-time">{item.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* POLICIES SECTION (Dynamic Loop) */}
+        <div className="col-lg-6">
+          <div className="mega-card" style={cardStyle}>
+            <div className="card-header-flex" style={headerStyle}>
+              <h2 className="section-title m-0">Policies</h2>
+              <span className="header-dot"></span>
+            </div>
+
+            <div className="policies-scroll-list">
+              {loading ? (
+                <div className="text-center p-5">Loading...</div>
+              ) : policies.length > 0 ? (
+                policies.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className="policy-item d-flex justify-content-between align-items-center p-3 mb-2 border rounded-pill"
+                    style={{ cursor: 'pointer', transition: '0.3s', backgroundColor: '#fdfdfd' }}
+                    onClick={() => handleDownload(item.file_path, item.title)}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f1f1'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fdfdfd'}
+                  >
+                    <span style={{ fontWeight: '500' }}>{item.title}</span>
+                    <FontAwesomeIcon icon={faDownload} style={{ color: '#0056b3' }} />
+                  </div>
+                ))
+              ) : (
+                <div className="text-center p-5">No policies found.</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  )
 }
 
-export default Mega_Olympics
+export default Mega_Olympics;

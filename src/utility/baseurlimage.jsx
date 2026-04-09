@@ -1,0 +1,1 @@
+export const BASE_URL = "https://spp.statelyweb.co.uk";

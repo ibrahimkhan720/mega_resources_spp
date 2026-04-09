@@ -9,7 +9,7 @@ export class Navbar extends Component {
 
   handleLogout = async () => {
   try {
-    // await logoutUser(); // 👈 isko uncomment karo
+    await logoutUser(); 
     
     localStorage.removeItem("token");
     window.location.href = "/login";

@@ -7,20 +7,16 @@ export class Staff_Banefits extends Component {
   render() {
     return (
       <div className=" main_card_banefits container-fluid">
-        {/* Back Link */}
         <div className="">
           <Link href="/" className="text-decoration-none d-flex align-items-center" style={{ color: '#003366', fontWeight: '700' , marginBottom: '2rem' , fontSize: '18px' }}>
             <span className="me-2">←</span> Back to Dashboard
           </Link>
         </div>
 
-        {/* Main Card Wrapper */}
         <div className="card_banefits border-0 shadow-sm pt-4 pb-5" style={{ borderRadius: '20px', backgroundColor: '#ffffff' }}>
           
-          {/* Header Section */}
           <div className="d-flex align-items-center mb-4">
             <div className="me-3">
-              {/* Target Icon Placeholder */}
               <div style={{ fontSize: '40px' }}>🎯</div>
             </div>
             <div>
@@ -29,7 +25,6 @@ export class Staff_Banefits extends Component {
             </div>
           </div>
 
-          {/* Blue Section */}
           <div className="p-4" style={{ 
             backgroundColor: '#1a3a8a', 
             borderRadius: '15px', 
