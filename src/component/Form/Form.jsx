@@ -128,7 +128,6 @@ export class Forms extends Component {
 
             {/* Action Buttons */}
             <div className="d-flex justify-content-center gap-3">
-              <button type="button" className="btn btn-outline-secondary px-5 py-2" style={{ borderRadius: '8px' }}>Save</button>
               <button type="submit" className="btn btn-success px-5 py-2" style={{ borderRadius: '8px', backgroundColor: '#00b341', border: 'none' }}>Submit</button>
             </div>
           </form>

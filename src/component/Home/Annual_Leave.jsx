@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock, faCalendarAlt, faTimes } from '@fortawesome/free-solid-svg-icons'
 import logoimage from "../../assets/images/5ffac5b492ec250053baf0085380433da86f99d5.png"
 import Image from 'next/image'
-import {annualleave} from "@/Api/AnnualLeavepi";
+import { annualleave } from "@/Api/AnnualLeavepi";
 
 const PalmTree = "🌴"; 
 const Seedling = "🌱";
@@ -16,8 +16,11 @@ export class Annual_Leave extends Component {
     this.state = {
       showModal: false,
       form: {
+        leave_type: "fullday", // Default value
         start_date: "",
         end_date: "",
+        start_time: "",
+        end_time: "",
         reason: "",
         emergency_number: ""
       },
@@ -32,42 +35,41 @@ export class Annual_Leave extends Component {
       form: {
         ...this.state.form,
         [name]: value
-      }
+      },
+      // Clear errors when user types
+      errors: { ...this.state.errors, [name]: "" }
     });
   };
   
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.showModal !== this.state.showModal) {
-      if (this.state.showModal) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = 'unset';
-      }
-    }
+  toggleModal = () => {
+    this.setState({ 
+        showModal: !this.state.showModal,
+        successMessage: "",
+        errors: {} 
+    });
   }
 
   validateForm = () => {
-    const { start_date, end_date, reason, emergency_number } = this.state.form;
+    const { leave_type, start_date, end_date, start_time, end_time, reason, emergency_number } = this.state.form;
     let errors = {};
   
-    if (!start_date) {
-      errors.start_date = "Start date is required";
-    } else if (new Date(start_date) < new Date().setHours(0,0,0,0)) {
-      errors.start_date = "Start date cannot be in the past";
+    if (!start_date) errors.start_date = "Start date is required";
+    if (!reason) errors.reason = "Reason is required";
+    if (!emergency_number) errors.emergency_number = "Emergency contact is required";
+
+    // Half Day Validation
+    if (leave_type === 'half-day') {
+      if (!start_time) errors.start_time = "Start time is required";
+      if (!end_time) errors.end_time = "End time is required";
     }
-  
-    if (!end_date) {
-      errors.end_date = "End date is required";
-    } else if (new Date(end_date) < new Date(start_date)) {
-      errors.end_date = "End date must be after start date";
-    }
-  
-    if (!reason) {
-      errors.reason = "Reason is required";
-    }
-  
-    if (!emergency_number) {
-      errors.emergency_number = "Emergency number is required";
+
+    // Custom Day Validation
+    if (leave_type === 'custome-day') {
+      if (!end_date) {
+        errors.end_date = "End date is required";
+      } else if (new Date(end_date) < new Date(start_date)) {
+        errors.end_date = "End date cannot be before start date";
+      }
     }
   
     this.setState({ errors });
@@ -78,41 +80,38 @@ export class Annual_Leave extends Component {
     if (!this.validateForm()) return;
   
     try {
-      await annualleave(this.state.form);
+      // Backend ko data bhejte waqt unnecessary fields saaf kar dena
+      const payload = { ...this.state.form };
+      await annualleave(payload);
   
       this.setState({
-        successMessage: "Leave sent successfully",
+        successMessage: "Leave request submitted successfully!",
         form: {
+          leave_type: "fullday",
           start_date: "",
           end_date: "",
+          start_time: "",
+          end_time: "",
           reason: "",
           emergency_number: ""
-        },
-        errors: {}
+        }
       });
+
+      setTimeout(() => this.toggleModal(), 2000);
   
     } catch (error) {
-      console.error(error);
-      this.setState({
-        successMessage: "Something went wrong"
-      });
+      this.setState({ successMessage: "Error submitting request" });
     }
   };
 
-  componentWillUnmount() {
-    document.body.style.overflow = 'unset';
-  }
-
-  toggleModal = () => {
-    this.setState({ showModal: !this.state.showModal });
-  }
-
   render() {
+    const { form, errors, showModal, successMessage } = this.state;
+
     return (
       <div className="annual-leave-container">
+        {/* Statistics Card */}
         <div className="leave-card shadow-sm">
           <h5 className="leave-title">Annual Leave</h5>
-          
           <div className="leave-content-row">
             <div className="leave-stat-box">
               <span className="leave-icon-large">{PalmTree}</span>
@@ -121,7 +120,6 @@ export class Annual_Leave extends Component {
                 <p className="leave-label">Available Annual Leave</p>
               </div>
             </div>
-
             <div className="leave-stat-box">
               <span className="leave-icon-large">{Seedling}</span>
               <div className="leave-info">
@@ -130,7 +128,6 @@ export class Annual_Leave extends Component {
               </div>
             </div>
           </div>
-
           <div className="leave-actions">
             <button className="request-btn" onClick={this.toggleModal}>
               <FontAwesomeIcon icon={faClock} className="me-2" />
@@ -143,15 +140,11 @@ export class Annual_Leave extends Component {
         </div>
 
         <div className="vision-bar-wrapper text-center">
-            <Image 
-                src={logoimage} 
-                alt="One Team One Vision" 
-                priority
-                style={{ width: 'auto', height: 'auto', maxWidth: '70%' }}
-            />
+            <Image src={logoimage} alt="Vision" priority style={{ width: 'auto', height: 'auto', maxWidth: '70%' }} />
         </div>
 
-        {this.state.showModal && (
+        {/* Modal Logic */}
+        {showModal && (
           <div className="custom-modal-overlay">
             <div className="custom-modal-content">
               <div className="modal-header-row">
@@ -163,81 +156,69 @@ export class Annual_Leave extends Component {
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
               </div>
-              <p className="modal-subtext">Fill out the form below to request time off. Your manager will be notified.</p>
+              
               <div className="modal-body-form">
-
+                {/* Leave Type Selector - Important for Backend */}
                 <div className="form-group-custom">
-                  <label>Start Date</label>
-                  <input
-                    type="date"
-                    name="start_date"
-                    className="form-control-custom"
-                    value={this.state.form.start_date}
-                    onChange={this.handleChange}
-                  />
-                  {this.state.errors?.start_date && (
-                    <small className="text-danger">{this.state.errors.start_date}</small>
+                  <label>Leave Type</label>
+                  <select name="leave_type" className="form-control-custom" value={form.leave_type} onChange={this.handleChange}>
+                    <option value="fullday">Full Day</option>
+                    <option value="half-day">Half Day</option>
+                    <option value="custome-day">Custom Range</option>
+                  </select>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 form-group-custom">
+                    <label>Start Date</label>
+                    <input type="date" name="start_date" className="form-control-custom" value={form.start_date} onChange={this.handleChange} />
+                    {errors.start_date && <small className="text-danger">{errors.start_date}</small>}
+                  </div>
+
+                  {/* Show End Date only for Custom Range */}
+                  {form.leave_type === 'custome-day' && (
+                    <div className="col-md-6 form-group-custom">
+                      <label>End Date</label>
+                      <input type="date" name="end_date" className="form-control-custom" value={form.end_date} onChange={this.handleChange} />
+                      {errors.end_date && <small className="text-danger">{errors.end_date}</small>}
+                    </div>
                   )}
                 </div>
 
+                {/* Show Times only for Half Day */}
+                {form.leave_type === 'half-day' && (
+                  <div className="row">
+                    <div className="col-md-6 form-group-custom">
+                      <label>Start Time</label>
+                      <input type="time" name="start_time" className="form-control-custom" value={form.start_time} onChange={this.handleChange} />
+                      {errors.start_time && <small className="text-danger">{errors.start_time}</small>}
+                    </div>
+                    <div className="col-md-6 form-group-custom">
+                      <label>End Time</label>
+                      <input type="time" name="end_time" className="form-control-custom" value={form.end_time} onChange={this.handleChange} />
+                      {errors.end_time && <small className="text-danger">{errors.end_time}</small>}
+                    </div>
+                  </div>
+                )}
+
                 <div className="form-group-custom">
-                  <label>End Date</label>
-                  <input
-                    type="date"
-                    name="end_date"
-                    className="form-control-custom"
-                    value={this.state.form.end_date}
-                    onChange={this.handleChange}
-                  />
-                  {this.state.errors?.end_date && (
-                    <small className="text-danger">{this.state.errors.end_date}</small>
-                  )}
+                  <label>Reason</label>
+                  <textarea name="reason" className="form-control-custom" rows="2" value={form.reason} onChange={this.handleChange} placeholder="Reason..."></textarea>
+                  {errors.reason && <small className="text-danger">{errors.reason}</small>}
                 </div>
 
                 <div className="form-group-custom">
-                  <label>Reason for Leave</label>
-                  <textarea
-                    name="reason"
-                    className="form-control-custom"
-                    rows="3"
-                    value={this.state.form.reason}
-                    onChange={this.handleChange}
-                    placeholder="Please provide a brief reason..."
-                  />
-                  {this.state.errors?.reason && (
-                    <small className="text-danger">{this.state.errors.reason}</small>
-                  )}
+                  <label>Emergency Contact</label>
+                  <input type="text" name="emergency_number" className="form-control-custom" value={form.emergency_number} onChange={this.handleChange} placeholder="+44..." />
+                  {errors.emergency_number && <small className="text-danger">{errors.emergency_number}</small>}
                 </div>
+              </div>
 
-                <div className="form-group-custom">
-                  <label>Emergency Contact Number</label>
-                  <input
-                    type="text"
-                    name="emergency_number"
-                    className="form-control-custom"
-                    value={this.state.form.emergency_number}
-                    onChange={this.handleChange}
-                    placeholder="+44 7XXX XXXXXX"
-                  />
-                  {this.state.errors?.emergency_number && (
-                    <small className="text-danger">{this.state.errors.emergency_number}</small>
-                  )}
-                </div>
+              {successMessage && <div className="alert alert-info py-2 small text-center">{successMessage}</div>}
 
-                </div>
-                
-                {this.state.successMessage && (
-                <div className="alert alert-success w-100 text-center">
-                  {this.state.successMessage}
-                </div>
-              )}
               <div className="modal-footer-row">
-              <button className="btn-cancel-modal" onClick={this.toggleModal}>
-                Cancel
-              </button>
-              <button className="btn-submit-modal" onClick={this.handleSubmit}>
-                Submit Request
-              </button>
+                <button className="btn-cancel-modal" onClick={this.toggleModal}>Cancel</button>
+                <button className="btn-submit-modal" onClick={this.handleSubmit}>Submit Request</button>
               </div>
             </div>
           </div>
@@ -247,4 +228,4 @@ export class Annual_Leave extends Component {
   }
 }
 
-export default Annual_Leave
+export default Annual_Leave;
