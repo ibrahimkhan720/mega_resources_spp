@@ -1,24 +1,32 @@
 "use client"
 
 import React, { Component } from 'react'
-
+import { getreward } from "../../Api/Rewardapi"
 
 export class Award extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      rewards: [], 
+      loading: true
+    };
+  }
+
+  async componentDidMount() {
+    try {
+      const response = await getreward();
+      if (response && response.info) {
+        this.setState({ rewards: response.info });
+      }
+    } catch (error) {
+      console.error("Error fetching rewards:", error);
+    } finally {
+      this.setState({ loading: false });
+    }
+  }
+
   render() {
-    const rewards = [
-      { name: "£5 supermarket voucher", points: "500" },
-      { name: "Free lunch (up to £10)", points: "1,000" },
-      { name: "Costa, Greggs or McDonalds voucher", points: "1,000" },
-      { name: "£10 Supermarket voucher", points: "1,000" },
-      { name: "Car kit (cleaning kit, de-icer/scraper & air freshener)", points: "1,500" },
-      { name: "Relaxing bath kit (bath salts, nice toiletries, candle, etc)", points: "1,500" },
-      { name: "Premium Mega Care reusable water bottle / coffee flask", points: "1,500" },
-      { name: "Winter care pack (gloves, thermal socks, hand cream, etc.)", points: "1,500" },
-      { name: "Pamper kit (skincare face masks, candles, snacks, etc)", points: "1,500" },
-      { name: "£20 supermarket voucher", points: "2,000" },
-      { name: "Retail store voucher (£20) JD, H&M, Zara, etc", points: "2,000" },
-      { name: "Premium tote bag (Mega Care backpack)", points: "2,000" },
-    ];
+    const { rewards, loading } = this.state;
 
     return (
       <div className="rewards-container">
@@ -38,14 +46,25 @@ export class Award extends Component {
                 </tr>
               </thead>
               <tbody>
-                {rewards.map((item, index) => (
-                  <tr key={index}>
-                    <td>{item.name}</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <span className="points-badge">{item.points}</span>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan="2" className="text-center py-3">Loading...</td>
                   </tr>
-                ))}
+                ) : rewards.length > 0 ? (
+                  rewards.map((item, index) => (
+                    <tr key={item.id || index}>
+                      {/* Backend se 'reward_title' aur 'point_cost' aa raha hai */}
+                      <td>{item.reward_title}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span className="points-badge">{item.point_cost}</span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="2" className="text-center py-3">No rewards available.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

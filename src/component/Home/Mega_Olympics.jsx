@@ -8,7 +8,6 @@ import { POLICY_FILE_URL } from "../../utility/policiesimage"
 
 const Mega_Olympics = () => {
   const [policies, setPolicies] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const meetings = [
   { id: 1, day: "30", month: "DEC", weekday: "WED", title: "Staff Meeting 1", time: "09:30am" },
@@ -25,9 +24,7 @@ const Mega_Olympics = () => {
         }
       } catch (error) {
         console.error("Data fetch error:", error);
-      } finally {
-        setLoading(false);
-      }
+      } 
     };
     fetchPolicies();
   }, []);
@@ -111,11 +108,8 @@ const Mega_Olympics = () => {
               <span className="header-dot"></span>
             </div>
 
-            <div className="policies-scroll-list">
-              {loading ? (
-                <div className="text-center p-5">Loading...</div>
-              ) : policies.length > 0 ? (
-                policies.map((item) => (
+              <div className="policies-scroll-list">
+                {policies.length > 0 && policies.map((item) => (
                   <div 
                     key={item.id} 
                     className="policy-item d-flex justify-content-between align-items-center p-3 mb-2 border rounded-pill"
@@ -127,11 +121,8 @@ const Mega_Olympics = () => {
                     <span style={{ fontWeight: '500' }}>{item.title}</span>
                     <FontAwesomeIcon icon={faDownload} style={{ color: '#0056b3' }} />
                   </div>
-                ))
-              ) : (
-                <div className="text-center p-5">No policies found.</div>
-              )}
-            </div>
+                ))}
+              </div>
           </div>
         </div>
 

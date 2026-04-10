@@ -12,7 +12,6 @@ export class Organisation extends Component {
       isCareOpen: true,
       isHROpen: true,
       staffData: [],
-      loading: true
     };
   }
 
@@ -33,7 +32,7 @@ export class Organisation extends Component {
   }
 
   render() {
-    const { staffData, loading, isRegionalOpen, isCareOpen, isHROpen } = this.state;
+    const { staffData, isRegionalOpen, isCareOpen, isHROpen } = this.state;
 
     const ceo = staffData.find(s => s.position_id == 7); 
     const leadership = staffData.filter(s => s.management_id == 2 && s.position_id != 7); 
@@ -41,7 +40,6 @@ export class Organisation extends Component {
     const careStaff = staffData.filter(s => s.management_id == 4);
     const hrTeam = staffData.filter(s => s.management_id == 5);
 
-    if (loading) return <div className="text-center p-5 fw-bold"><h4>Loading...</h4></div>;
 
     return (
       <div className="org-page-container pt-5">
