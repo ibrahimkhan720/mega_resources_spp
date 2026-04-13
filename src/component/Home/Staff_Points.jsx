@@ -2,10 +2,13 @@
 
 import React, { Component } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faStar, faStop, faTimes, faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faStar, faStop, faTimes, faExclamationCircle, faCircleCheck } from '@fortawesome/free-solid-svg-icons'
 import Image from 'next/image'
 import king from "../../assets/images/2528ba7934b38571d9d321aba12ea04bdc4eba19.avif"
-import { getreward, getStaffProfile } from "../../Api/Rewardapi"
+// Agar aapke paas koi specific success image hai toh yahan import karein:
+// import successImg from "../../assets/images/success-celebration.png"
+
+import { claimReward, getreward, getStaffProfile } from "../../Api/Rewardapi"
 
 export class Staff_Points extends Component {
 
@@ -13,6 +16,7 @@ export class Staff_Points extends Component {
     super(props);
     this.state = { 
       isOpen: false,
+      showThankYou: false, // Success popup state
       rewards: [],
       loading: true,
       redeemedIds: [],
@@ -26,6 +30,10 @@ export class Staff_Points extends Component {
   }
 
   async componentDidMount() {
+    await this.fetchInitialData();
+  }
+
+  fetchInitialData = async () => {
     try {
       const profile = await getStaffProfile();
       if (profile) {
@@ -41,7 +49,15 @@ export class Staff_Points extends Component {
 
       const response = await getreward();
       if (response && response.info) {
-        this.setState({ rewards: response.info });
+        // Database se check karna ke kaunse rewards already claimed hain
+        const alreadyRedeemed = response.info
+          .filter(r => r.is_claimed === true || r.is_claimed === 1) 
+          .map(r => r.id);
+
+        this.setState({ 
+          rewards: response.info, 
+          redeemedIds: alreadyRedeemed 
+        });
       }
     } catch (error) {
       console.error("Error loading data:", error);
@@ -54,16 +70,45 @@ export class Staff_Points extends Component {
     this.setState({ isOpen: !this.state.isOpen });
   }
 
-  handleClaim = (id) => {
-    this.setState({ redeemedIds: [...this.state.redeemedIds, id] });
+  closeThankYou = () => {
+    this.setState({ showThankYou: false });
+  }
+
+  handleClaim = async (id) => {
+    const token = localStorage.getItem('token'); 
+    
+    if (!token) {
+      alert("Session expired. Please login again.");
+      return;
+    }
+
+    try {
+      // 1. Post API hit (Database mein save)
+      await claimReward(id, {}, token);
+
+      // 2. State update (Redeemed mark karna aur Popups manage karna)
+      this.setState({ 
+        redeemedIds: [...this.state.redeemedIds, id],
+        isOpen: false, // Card list wala modal band
+        showThankYou: true // Thank you popup khul jaye
+      });
+
+      // 3. Points update karne ke liye refresh
+      await this.fetchInitialData();
+
+    } catch (error) {
+      console.error("Claim Error:", error);
+      alert(error.response?.data?.message || "Error claiming reward.");
+    }
   }
 
   render() {
-    const { staffData, rewards, loading, redeemedIds, isOpen } = this.state;
+    const { staffData, rewards, loading, redeemedIds, isOpen, showThankYou } = this.state;
 
     return (
       <section className="container-fluid main-hero-section my-4">
 
+        {/* HERO SECTION - DESIGN AS IT IS */}
         <div className="heroSection px-4 px-lg-5">
           <div className="row align-items-center justify-content-between g-0">
             <div className="col-lg-7 py-3">
@@ -100,9 +145,9 @@ export class Staff_Points extends Component {
                   <Image src={king} alt="User" width={120} height={120} className="w-100 h-100" style={{ objectFit: 'cover' }} priority />
                 </div>
                 <h5 className="mb-0 fw-bold text-white mt-2">{staffData.name}</h5>
-                  <div className='d-flex justify-content-center text-center gap-2'>
-                <p className="small text-white-50 mb-3">Dept ID: {staffData.department_id}</p>
-                <p className="small text-white-50 mb-0">( Branch ID: {staffData.branch_id} )</p>
+                <div className='d-flex justify-content-center text-center gap-2'>
+                  <p className="small text-white-50 mb-3">Dept ID: {staffData.department_id}</p>
+                  <p className="small text-white-50 mb-0">( Branch ID: {staffData.branch_id} )</p>
                 </div>
                 
                 <div className="d-flex justify-content-center gap-2">
@@ -114,7 +159,7 @@ export class Staff_Points extends Component {
           </div>
         </div>
 
-        {/* MODAL */}
+        {/* CLAIM LIST MODAL */}
         <div className={`slideDownModal ${isOpen ? 'open' : ''}`}>
           <div className="innerModal bg-white p-4 p-md-5 mt-3 shadow-sm border rounded-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -124,45 +169,18 @@ export class Staff_Points extends Component {
               </button>
             </div>
 
-            <div className="d-flex justify-content-center gap-3 mb-5">
-              <div className="text-center">
-                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#00c1a1' }}><FontAwesomeIcon icon={faCheck} /></div>
-                <small className="fw-bold text-muted">1000 Hrs</small>
-              </div>
-              <div className="text-center">
-                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#00c1a1' }}><FontAwesomeIcon icon={faCheck} /></div>
-                <small className="fw-bold text-muted">2000 Hrs</small>
-              </div>
-              <div className="text-center">
-                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#ffc107' }}><FontAwesomeIcon icon={faStar} /></div>
-                <small className="fw-bold text-muted">3000 Hrs</small>
-              </div>
-              <div className="text-center">
-                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#ff6b6b' }}><FontAwesomeIcon icon={faStop} /></div>
-                <small className="fw-bold text-muted">4000 Hrs</small>
-              </div>
-            </div>
-
-            <div className="alertBoxRed p-3 mb-4 d-flex gap-3">
-              <div className="redCircle"><FontAwesomeIcon icon={faExclamationCircle} /></div>
-              <div>
-                <h6 className="fw-bold mb-1">Earn points for hours you work.</h6>
-                <p className="small mb-1 text-muted">The rule is simple, for every hour you work, you accrue 2 points. Once you acquired certain points you can claim your reward.</p>
-                <p className="fw-bold m-0 small">1hr = 2 Points.</p>
-              </div>
-            </div>
-
             <div className="row g-3">
               {loading ? (
                 <div className="text-center w-100 py-4">Loading Rewards...</div>
               ) : rewards.map((reward, index) => {
                 const rId = reward.id || index;
                 const isRedeemed = redeemedIds.includes(rId);
-                const cannotClaim = staffData.points < Number(reward.point_cost);
+                // Agar redeemed hai toh lock nahi dikhayega bhale hi points kam hon
+                const cannotClaim = staffData.points < Number(reward.point_cost) && !isRedeemed;
 
                 return (
                   <div key={rId} className="col-lg-3 col-md-6 col-sm-12">
-                    <div className="rewardCardItem d-flex align-items-center p-3 text-center h-100 d-flex flex-column justify-content-between" >
+                    <div className="rewardCardItem d-flex align-items-center p-3 text-center h-100 d-flex flex-column justify-content-between">
                       <div>
                         <p className="small fw-bold text-uppercase">{reward.reward_title}</p>
                         <p className="small text-muted">{reward.point_cost} Points</p>
@@ -172,17 +190,15 @@ export class Staff_Points extends Component {
                         onClick={() => this.handleClaim(rId)}
                         disabled={cannotClaim || isRedeemed}
                         style={{ 
-                          opacity: cannotClaim && !isRedeemed ? 0.6 : 1,
-                          cursor: (cannotClaim || isRedeemed) ? 'not-allowed' : 'pointer'   ,
+                          backgroundColor: isRedeemed ? '#6c757d' : (cannotClaim ? '#ccc' : '#00c1a1'),
                           color: '#fff',
                           border: 'none',
                           padding: '12px',
                           borderRadius: '25px',
                           cursor: (cannotClaim || isRedeemed) ? 'not-allowed' : 'pointer',
-                          transition: '0.3s',
-                          width: '14rem'
-
-                      }}
+                          width: '100%',
+                          opacity: cannotClaim ? 0.6 : 1
+                        }}
                       >
                         {isRedeemed ? 'Redeemed' : (cannotClaim ? 'Locked' : 'Claim')}
                       </button>
@@ -193,6 +209,54 @@ export class Staff_Points extends Component {
             </div>
           </div>
         </div>
+
+        {/* --- THANK YOU POPUP (SUCCESS) --- */}
+        {showThankYou && (
+          <div className="thankYouOverlay">
+            <div className="thankYouModal p-5 text-center shadow-lg rounded-4 bg-white">
+              <div className="mb-4">
+                 <FontAwesomeIcon icon={faCircleCheck} className="successAnimate" style={{fontSize: '70px', color: '#00c1a1'}} />
+              </div>
+              <h2 className="fw-bold mb-2" style={{color: '#333'}}>Thank You!</h2>
+              <p className="text-muted mb-4">Your reward has been claimed successfully and saved in our records.</p>
+              <button className="customBtn btnClaim px-5" onClick={this.closeThankYou} style={{width: 'auto'}}>Got it!</button>
+            </div>
+          </div>
+        )}
+
+        <style jsx>{`
+          .thankYouOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+          }
+          .thankYouModal {
+            max-width: 450px;
+            width: 90%;
+            border-top: 5px solid #00c1a1;
+            animation: popIn 0.4s ease-out;
+          }
+          @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          .successAnimate {
+            animation: bounce 0.6s ease;
+          }
+          @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+          }
+        `}</style>
+
       </section>
     )
   }

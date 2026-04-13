@@ -63,7 +63,6 @@ const Mega_Olympics = () => {
   return (
     <div className="mega-container-wrapper" style={{ padding: "30px 6rem 0 !important" }}>
       
-      {/* NEWS BAR */}
       <div className="mega-news-bar d-flex align-items-center justify-content-between mb-4">
         <div className="d-flex align-items-center ">
           <span className="news-label">NEWS</span>
@@ -74,7 +73,6 @@ const Mega_Olympics = () => {
 
       <div className="row g-4">
         
-        {/* MEETINGS SECTION (With Fixed Loop) */}
         <div className="col-lg-6">
           <div className="mega-card" style={cardStyle}>
             <div className="card-header-flex" style={headerStyle}>
@@ -100,7 +98,6 @@ const Mega_Olympics = () => {
           </div>
         </div>
 
-        {/* POLICIES SECTION (Dynamic Loop) */}
         <div className="col-lg-6">
           <div className="mega-card" style={cardStyle}>
             <div className="card-header-flex" style={headerStyle}>
