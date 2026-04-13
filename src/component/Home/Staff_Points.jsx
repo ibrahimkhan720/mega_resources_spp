@@ -5,8 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faStar, faStop, faTimes, faExclamationCircle, faCircleCheck } from '@fortawesome/free-solid-svg-icons'
 import Image from 'next/image'
 import king from "../../assets/images/2528ba7934b38571d9d321aba12ea04bdc4eba19.avif"
-// Agar aapke paas koi specific success image hai toh yahan import karein:
-// import successImg from "../../assets/images/success-celebration.png"
+
 
 import { claimReward, getreward, getStaffProfile } from "../../Api/Rewardapi"
 
@@ -16,12 +15,12 @@ export class Staff_Points extends Component {
     super(props);
     this.state = { 
       isOpen: false,
-      showThankYou: false, // Success popup state
+      showThankYou: false,
       rewards: [],
       loading: true,
       redeemedIds: [],
       staffData: {
-        name: "King Lawal",
+        name: "",
         points: 0,
         branch_id: "",
         department_id: ""
@@ -169,6 +168,25 @@ export class Staff_Points extends Component {
               </button>
             </div>
 
+              <div className="d-flex justify-content-center gap-3 mb-5">
+              <div className="text-center">
+                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#00c1a1' }}><FontAwesomeIcon icon={faCheck} /></div>
+                <small className="fw-bold text-muted">1000 Hrs</small>
+              </div>
+              <div className="text-center">
+                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#00c1a1' }}><FontAwesomeIcon icon={faCheck} /></div>
+                <small className="fw-bold text-muted">2000 Hrs</small>
+              </div>
+              <div className="text-center">
+                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#ffc107' }}><FontAwesomeIcon icon={faStar} /></div>
+                <small className="fw-bold text-muted">3000 Hrs</small>
+              </div>
+              <div className="text-center">
+                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#ff6b6b' }}><FontAwesomeIcon icon={faStop} /></div>
+                <small className="fw-bold text-muted">4000 Hrs</small>
+              </div>
+            </div>
+
             <div className="row g-3">
               {loading ? (
                 <div className="text-center w-100 py-4">Loading Rewards...</div>
@@ -179,7 +197,9 @@ export class Staff_Points extends Component {
                 const cannotClaim = staffData.points < Number(reward.point_cost) && !isRedeemed;
 
                 return (
+                
                   <div key={rId} className="col-lg-3 col-md-6 col-sm-12">
+                  
                     <div className="rewardCardItem d-flex align-items-center p-3 text-center h-100 d-flex flex-column justify-content-between">
                       <div>
                         <p className="small fw-bold text-uppercase">{reward.reward_title}</p>
