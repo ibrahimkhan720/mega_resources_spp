@@ -53,7 +53,6 @@ export class Award extends Component {
                 ) : rewards.length > 0 ? (
                   rewards.map((item, index) => (
                     <tr key={item.id || index}>
-                      {/* Backend se 'reward_title' aur 'point_cost' aa raha hai */}
                       <td>{item.reward_title}</td>
                       <td style={{ textAlign: 'right' }}>
                         <span className="points-badge">{item.point_cost}</span>

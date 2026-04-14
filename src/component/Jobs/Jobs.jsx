@@ -76,9 +76,9 @@ export class Jobs extends Component {
                     </div>
                   </div>
                 </div>
-                <div className="d-flex gap-2">
+                {/* <div className="d-flex gap-2">
                   <button className="btn btn-primary-modern">View Applications</button>
-                </div>
+                </div> */}
               </div>
 
               <div className="job-body mt-4">

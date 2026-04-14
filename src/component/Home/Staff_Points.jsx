@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { Component } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -6,8 +6,8 @@ import { faCheck, faStar, faStop, faTimes, faExclamationCircle, faCircleCheck } 
 import Image from 'next/image'
 import king from "../../assets/images/2528ba7934b38571d9d321aba12ea04bdc4eba19.avif"
 
-
-import { claimReward, getreward, getStaffProfile } from "../../Api/Rewardapi"
+import { claimReward, getreward } from "../../Api/Rewardapi"
+import { getachievement } from '@/Api/Achievementapi' // ✅ API Import
 
 export class Staff_Points extends Component {
 
@@ -17,6 +17,7 @@ export class Staff_Points extends Component {
       isOpen: false,
       showThankYou: false,
       rewards: [],
+      achievements: [], // 🔥 Dynamic achievements state
       loading: true,
       redeemedIds: [],
       staffData: {
@@ -34,21 +35,22 @@ export class Staff_Points extends Component {
 
   fetchInitialData = async () => {
     try {
-      const profile = await getStaffProfile();
+      // 1. Staff Profile
+      const profile = JSON.parse(localStorage.getItem('user_data'));
       if (profile) {
         this.setState({
           staffData: {
-            name: profile.name || "King Lawal",
+            name: profile.name,
             points: Number(profile.points) || 0,
-            branch_id: profile.branch_id || "N/A",
-            department_id: profile.department_id || "N/A"
+            branch_id: profile.branch?.name,
+            department_id: profile.department?.name
           }
         });
       }
 
+      // 2. Rewards
       const response = await getreward();
       if (response && response.info) {
-        // Database se check karna ke kaunse rewards already claimed hain
         const alreadyRedeemed = response.info
           .filter(r => r.is_claimed === true || r.is_claimed === 1) 
           .map(r => r.id);
@@ -58,11 +60,30 @@ export class Staff_Points extends Component {
           redeemedIds: alreadyRedeemed 
         });
       }
+
+      // 3. 🔥 Fetch Achievements (Dynamic)
+      const achievementRes = await getachievement();
+      if (achievementRes && achievementRes.info) {
+        this.setState({ achievements: achievementRes.info });
+      }
+
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
       this.setState({ loading: false });
     }
+  }
+
+  // Helper to decide icon and color based on index or status
+  getAchievementStyles = (index) => {
+    const styles = [
+      { color: '#00c1a1', icon: faCheck }, // First
+      { color: '#00c1a1', icon: faCheck }, // Second
+      { color: '#ffc107', icon: faStar, active: true }, // Third (Active)
+      { color: '#ff6b6b', icon: faStop }  // Fourth
+    ];
+    // Return style based on index, fallback to default if more than 4
+    return styles[index] || { color: '#00c1a1', icon: faCheck };
   }
 
   toggleClaim = () => {
@@ -75,26 +96,19 @@ export class Staff_Points extends Component {
 
   handleClaim = async (id) => {
     const token = localStorage.getItem('token'); 
-    
     if (!token) {
       alert("Session expired. Please login again.");
       return;
     }
 
     try {
-      // 1. Post API hit (Database mein save)
       await claimReward(id, {}, token);
-
-      // 2. State update (Redeemed mark karna aur Popups manage karna)
       this.setState({ 
         redeemedIds: [...this.state.redeemedIds, id],
-        isOpen: false, // Card list wala modal band
-        showThankYou: true // Thank you popup khul jaye
+        isOpen: false, 
+        showThankYou: true 
       });
-
-      // 3. Points update karne ke liye refresh
       await this.fetchInitialData();
-
     } catch (error) {
       console.error("Claim Error:", error);
       alert(error.response?.data?.message || "Error claiming reward.");
@@ -102,12 +116,11 @@ export class Staff_Points extends Component {
   }
 
   render() {
-    const { staffData, rewards, loading, redeemedIds, isOpen, showThankYou } = this.state;
+    const { staffData, rewards, achievements, loading, redeemedIds, isOpen, showThankYou } = this.state;
 
     return (
       <section className="container-fluid main-hero-section my-4">
 
-        {/* HERO SECTION - DESIGN AS IT IS */}
         <div className="heroSection px-4 px-lg-5">
           <div className="row align-items-center justify-content-between g-0">
             <div className="col-lg-7 py-3">
@@ -119,22 +132,18 @@ export class Staff_Points extends Component {
               </h1>
               
               <div className="icons d-flex flex-wrap gap-3">
-                <div className="text-center">
-                  <div className="iconCircle" style={{ backgroundColor: '#00c1a1' }}><FontAwesomeIcon icon={faCheck} /></div>
-                  <small className="fw-bold d-block text-white">1000 Hrs</small>
-                </div>
-                <div className="text-center">
-                  <div className="iconCircle" style={{ backgroundColor: '#00c1a1' }}><FontAwesomeIcon icon={faCheck} /></div>
-                  <small className="fw-bold d-block text-white">2000 Hrs</small>
-                </div>
-                <div className="text-center">
-                  <div className="iconCircle activeCircle starAnimation" style={{ backgroundColor: '#ffc107' }}><FontAwesomeIcon icon={faStar} /></div>
-                  <small className="fw-bold d-block text-white">3000 Hrs</small>
-                </div>
-                <div className="text-center">
-                  <div className="iconCircle" style={{ backgroundColor: '#ff6b6b' }}><FontAwesomeIcon icon={faStop} /></div>
-                  <small className="fw-bold d-block text-white">4000 Hrs</small>
-                </div>
+                {achievements.map((ach, index) => {
+                  const style = this.getAchievementStyles(index);
+                  return (
+                    <div className="text-center" key={ach.id || index}>
+                      <div className={`iconCircle ${style.active ? 'activeCircle starAnimation' : ''}`} 
+                           style={{ backgroundColor: style.color }}>
+                        <FontAwesomeIcon icon={style.icon} />
+                      </div>
+                      <small className="fw-bold d-block text-white">{ach.hours} hrs</small>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -144,9 +153,9 @@ export class Staff_Points extends Component {
                   <Image src={king} alt="User" width={120} height={120} className="w-100 h-100" style={{ objectFit: 'cover' }} priority />
                 </div>
                 <h5 className="mb-0 fw-bold text-white mt-2">{staffData.name}</h5>
-                <div className='d-flex justify-content-center text-center gap-2'>
-                  <p className="small text-white-50 mb-3">Dept ID: {staffData.department_id}</p>
-                  <p className="small text-white-50 mb-0">( Branch ID: {staffData.branch_id} )</p>
+                <div className='justify-content-center text-center '>
+                  <p className="small text-white-50" style={{ marginBottom: "-3px" }}>Dept {staffData.department_id}</p>
+                  <p className="small text-white-50 " style={{ marginBottom: "5px" }}>( Branch {staffData.branch_id} )</p>
                 </div>
                 
                 <div className="d-flex justify-content-center gap-2">
@@ -158,7 +167,7 @@ export class Staff_Points extends Component {
           </div>
         </div>
 
-        {/* CLAIM LIST MODAL */}
+        {/* --- MODAL --- */}
         <div className={`slideDownModal ${isOpen ? 'open' : ''}`}>
           <div className="innerModal bg-white p-4 p-md-5 mt-3 shadow-sm border rounded-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -168,23 +177,18 @@ export class Staff_Points extends Component {
               </button>
             </div>
 
-              <div className="d-flex justify-content-center gap-3 mb-5">
-              <div className="text-center">
-                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#00c1a1' }}><FontAwesomeIcon icon={faCheck} /></div>
-                <small className="fw-bold text-muted">1000 Hrs</small>
-              </div>
-              <div className="text-center">
-                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#00c1a1' }}><FontAwesomeIcon icon={faCheck} /></div>
-                <small className="fw-bold text-muted">2000 Hrs</small>
-              </div>
-              <div className="text-center">
-                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#ffc107' }}><FontAwesomeIcon icon={faStar} /></div>
-                <small className="fw-bold text-muted">3000 Hrs</small>
-              </div>
-              <div className="text-center">
-                <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: '#ff6b6b' }}><FontAwesomeIcon icon={faStop} /></div>
-                <small className="fw-bold text-muted">4000 Hrs</small>
-              </div>
+            <div className="d-flex justify-content-center gap-3 mb-5 flex-wrap">
+              {achievements.map((ach, index) => {
+                const style = this.getAchievementStyles(index);
+                return (
+                  <div className="text-center" key={ach.id || index}>
+                    <div className="iconCircleLarge mx-auto mb-2" style={{ backgroundColor: style.color }}>
+                      <FontAwesomeIcon icon={style.icon} />
+                    </div>
+                    <small className="fw-bold text-muted">{ach.hours} hrs</small>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="row g-3">
@@ -193,13 +197,10 @@ export class Staff_Points extends Component {
               ) : rewards.map((reward, index) => {
                 const rId = reward.id || index;
                 const isRedeemed = redeemedIds.includes(rId);
-                // Agar redeemed hai toh lock nahi dikhayega bhale hi points kam hon
                 const cannotClaim = staffData.points < Number(reward.point_cost) && !isRedeemed;
 
                 return (
-                
                   <div key={rId} className="col-lg-3 col-md-6 col-sm-12">
-                  
                     <div className="rewardCardItem d-flex align-items-center p-3 text-center h-100 d-flex flex-column justify-content-between">
                       <div>
                         <p className="small fw-bold text-uppercase">{reward.reward_title}</p>
@@ -230,7 +231,6 @@ export class Staff_Points extends Component {
           </div>
         </div>
 
-        {/* --- THANK YOU POPUP (SUCCESS) --- */}
         {showThankYou && (
           <div className="thankYouOverlay">
             <div className="thankYouModal p-5 text-center shadow-lg rounded-4 bg-white">
@@ -247,19 +247,14 @@ export class Staff_Points extends Component {
         <style jsx>{`
           .thankYouOverlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             z-index: 10000;
           }
           .thankYouModal {
-            max-width: 450px;
-            width: 90%;
+            max-width: 450px; width: 90%;
             border-top: 5px solid #00c1a1;
             animation: popIn 0.4s ease-out;
           }
@@ -267,9 +262,7 @@ export class Staff_Points extends Component {
             0% { transform: scale(0.7); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
           }
-          .successAnimate {
-            animation: bounce 0.6s ease;
-          }
+          .successAnimate { animation: bounce 0.6s ease; }
           @keyframes bounce {
             0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
             40% {transform: translateY(-20px);}

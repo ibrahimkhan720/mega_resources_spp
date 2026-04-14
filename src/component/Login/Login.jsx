@@ -41,6 +41,7 @@ export class Login extends Component {
       });
 
       localStorage.setItem("token", res.token);
+      localStorage.setItem("user_data", JSON.stringify(res.data));
       window.location.href = "/";
 
     } catch (error) {
