@@ -205,7 +205,7 @@ const FormsComponent = () => {
                         <label className={`fw-bold mb-2 ${errors.branch ? 'text-danger' : ''}`} style={{ color: errors.branch ? '#ff4d4d' : '#004a99' }}>
                             Branch: <span className="text-danger">*</span>
                         </label>
-                        <div className={`d-flex flex-wrap gap-3 ${errors.branch ? 'p-2 border border-danger rounded' : ''}`}>
+                        <div className={`flex-wrap gap-3 ${errors.branch ? 'p-2 border border-danger rounded' : ''}`}>
                             {branchList.map((branch) => (
                                 <div className="form-check" key={branch.id}>
                                     <input className="form-check-input" type="radio" name="branch" id={`br-${branch.id}`} value={branch.id} 
@@ -269,7 +269,7 @@ const FormsComponent = () => {
                         <button type="button" onClick={addRow} style={{ background: '#004a99', color: 'white', border: 'none', borderRadius: '5px', padding: '5px 15px', fontSize: '13px' }}>+ Add Row</button>
                     </div>
 
-                    <div className="row">
+                    <div className="d-block row">
                         <div className="mt-3 col-md-4">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Total Miles:</label>
                             <input type="text" className="form-control bg-light" value={totalMiles} disabled style={{ borderRadius: '8px', padding: '12px' }} />
