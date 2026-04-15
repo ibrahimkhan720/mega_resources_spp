@@ -80,7 +80,6 @@ export class Annual_Leave extends Component {
     if (!this.validateForm()) return;
   
     try {
-      // Backend ko data bhejte waqt unnecessary fields saaf kar dena
       const payload = { ...this.state.form };
       await annualleave(payload);
   
