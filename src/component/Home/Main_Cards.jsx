@@ -40,7 +40,7 @@ export class Main_Cards extends Component {
         icon: faClipboardCheck,
         colorClass: "color-blue-dark",
         btnColor: "text-blue-dark",
-        link: "/mileage_tracking"
+        link: "/Mileage_Tracking"
       },
       {
         title: "Career Pathway:",
