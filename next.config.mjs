@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  trailingSlash: true, // 👈 IMPORTANT for cPanel hosting
-
+  trailingSlash: true, 
   images: {
     unoptimized: true,
   },

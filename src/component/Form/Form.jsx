@@ -1,25 +1,28 @@
 "use client"
 
 import Link from 'next/link';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic'; 
 import Swal from 'sweetalert2'; 
 import { getbranch } from '@/Api/Branchesapi';
 import { mileage } from "../../Api/MilageClaimapi";
 
 const FormsComponent = () => {
+    // Refs for scrolling to error
+    const formRef = useRef(null);
+
     // States
-    const [rows, setRows] = useState([
+    const initialRows = [
         { id: 1, date: '', purpose: '', start: '', end: '', comments: '', miles: '' },
         { id: 2, date: '', purpose: '', start: '', end: '', comments: '', miles: '' },
         { id: 3, date: '', purpose: '', start: '', end: '', comments: '', miles: '' },
-    ]);
+    ];
 
+    const [rows, setRows] = useState(initialRows);
     const [rate, setRate] = useState(0);
     const [totalMiles, setTotalMiles] = useState(0);
     const [branchList, setBranchList] = useState([]); 
     const [selectedBranch, setSelectedBranch] = useState(""); 
-    
     const [ratesFromProfile, setRatesFromProfile] = useState({ general: 0, social: 0 });
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -35,8 +38,6 @@ const FormsComponent = () => {
             setFirstName(userData.name || "");
             setLastName(userData.last_name || "");
             
-            // --- BRANCH LOCK LOGIC ---
-            // Profile se branch ID lekar state mein set kar rahe hain
             if (userData.branch?.id) {
                 setSelectedBranch(userData.branch.id.toString());
             }
@@ -80,10 +81,17 @@ const FormsComponent = () => {
         }
     };
 
+    const scrollToError = (selector) => {
+        const element = document.querySelector(selector);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+
     const validateForm = () => {
         let newErrors = {};
+        
         if (!firstName) newErrors.firstName = true;
-        if (!lastName) newErrors.lastName = true;
         if (!dateFrom) newErrors.dateFrom = true;
         if (!dateTo) newErrors.dateTo = true;
         if (!selectedBranch) newErrors.branch = true;
@@ -91,30 +99,48 @@ const FormsComponent = () => {
 
         const from = new Date(dateFrom);
         const to = new Date(dateTo);
-
-        // Date Range logic
         if (dateFrom && dateTo && from > to) {
             Swal.fire({ icon: 'warning', title: 'Date Range Error', text: 'Date From cannot be greater than Date To', confirmButtonColor: '#004a99' });
             return false;
         }
 
-        // --- TABLE DATE VALIDATION LOGIC ---
-        const filledRows = rows.filter(row => row.date !== "");
-        for (let i = 0; i < filledRows.length; i++) {
-            const rowDate = new Date(filledRows[i].date);
-            if (rowDate < from || rowDate > to) {
-                Swal.fire({ 
-                    icon: 'error', 
-                    title: 'Invalid Row Date', 
-                    text: `Date in row ${i + 1} must be between ${dateFrom} and ${dateTo}`,
-                    confirmButtonColor: '#d33' 
-                });
-                return false;
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const isRowEmpty = !row.date && !row.purpose && !row.start && !row.end && !row.comments && !row.miles;
+            
+            if (!isRowEmpty) {
+                if (!row.date || !row.purpose || !row.start || !row.end || !row.comments || !row.miles) {
+                    Swal.fire({ 
+                        icon: 'error', 
+                        title: 'Incomplete Row', 
+                        text: `Please fill all fields in row ${i + 1}`,
+                        confirmButtonColor: '#d33' 
+                    });
+                    scrollToError('.table-responsive');
+                    return false;
+                }
             }
+        }
+
+        const hasData = rows.some(row => row.date && row.purpose && row.miles);
+        if (!hasData) {
+            Swal.fire({ icon: 'info', title: 'Form Empty', text: 'Please fill at least one row.', confirmButtonColor: '#004a99' });
+            return false;
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    const resetForm = () => {
+        setRows(initialRows);
+        setTotalMiles(0);
+        setRate(0);
+        setDateFrom("");
+        setDateTo("");
+        setLastName(""); // FIX: Clear Surname
+        setErrors({});
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleSubmit = async (e) => {
@@ -122,10 +148,6 @@ const FormsComponent = () => {
         if (!validateForm()) return;
 
         const filledRows = rows.filter(row => row.date && row.purpose && row.miles);
-        if (filledRows.length === 0) {
-            Swal.fire({ icon: 'info', title: 'Empty Form', text: 'Please fill at least one row with details and miles.', confirmButtonColor: '#004a99' });
-            return;
-        }
 
         try {
             Swal.fire({ title: 'Submitting...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
@@ -152,10 +174,10 @@ const FormsComponent = () => {
             };
 
             await mileage(payload);
-            Swal.fire({ icon: 'success', title: 'Submitted!', text: 'Your claim has been recorded successfully.', confirmButtonColor: '#00b341' });
+            Swal.fire({ icon: 'success', title: 'Submitted!', text: 'Your claim has been recorded.', confirmButtonColor: '#00b341' });
+            resetForm();
         } catch (error) {
-            const errorMessage = error.response?.data?.message || "Server connection error.";
-            Swal.fire({ icon: 'error', title: 'Oops...', text: errorMessage, confirmButtonColor: '#d33' });
+            Swal.fire({ icon: 'error', title: 'Oops...', text: error.response?.data?.message || "Server error", confirmButtonColor: '#d33' });
         }
     };
 
@@ -177,98 +199,73 @@ const FormsComponent = () => {
             <div className="card shadow-sm mx-auto border-0" style={{ maxWidth: '1200px', borderRadius: '20px', padding: '40px', width: '90%' }}>
                 <h2 className="fw-bold mb-3" style={{ color: '#004a99' }}>Mileage Tracking and Reimbursement Form</h2>
                 
-                <form onSubmit={handleSubmit}>
-                    {/* Name Section */}
+                <form onSubmit={handleSubmit} ref={formRef}>
                     <div className="row mb-4">
                         <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Full Name <span className="text-danger">*</span></label>
                         <div className="col-md-6 mb-2">
-                            <input type="text" className="form-control" placeholder="First name" value={firstName} 
+                            <input type="text" name="firstName" className="form-control" placeholder="First name" value={firstName} 
                                 onChange={(e) => setFirstName(e.target.value)} 
                                 style={getInputStyle(errors.firstName)} />
                         </div>
                         <div className="col-md-6">
-                            <input type="text" className="form-control" placeholder="Surname" value={lastName} 
+                            <input type="text" className="form-control" placeholder="Surname (Optional)" value={lastName} 
                                 onChange={(e) => setLastName(e.target.value)} 
-                                style={getInputStyle(errors.lastName)} />
+                                style={getInputStyle(false)} />
                         </div>
                     </div>
 
-                    {/* Trip & Rate Section */}
                     <div className="row mb-4">
                         <div className="col-md-4">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Trip Type <span className="text-danger">*</span></label>
-                            <select 
-                                className="form-control" 
-                                style={getInputStyle(errors.rate)}
-                                onChange={(e) => {
-                                    setRate(parseFloat(e.target.value) || 0);
-                                    setErrors({...errors, rate: false});
-                                }}
-                                defaultValue=""
-                            >
-                                <option value="">Select Trip Type</option>
+                            <select name="rate" className="form-control" style={getInputStyle(errors.rate)}
+                                onChange={(e) => { setRate(parseFloat(e.target.value) || 0); setErrors({...errors, rate: false}); }}
+                                value={rate}>
+                                <option value="0">Select Trip Type</option>
                                 <option value={ratesFromProfile.general}>General Mileage</option>
                                 <option value={ratesFromProfile.social}>Social Media</option>
                             </select>
                         </div>
-
                         <div className="col-md-4">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Rate Per Mile (£)</label>
                             <input type="text" className="form-control bg-light" value={rate} readOnly style={{ borderRadius: '8px', padding: '12px' }} />
                         </div>
                     </div>
 
-                    {/* Branch Section (Locked) */}
                     <div className="mb-4">
-                        <label className="fw-bold mb-2" style={{ color: '#004a99' }}>
-                            Branch: (Auto-selected based on your profile)
-                        </label>
+                        <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Branch: (Auto-selected)</label>
                         <div className="d-flex flex-wrap gap-3 p-3 bg-light rounded" style={{ border: '1px solid #dee2e6' }}>
                             {branchList.map((branch) => {
                                 const isUserBranch = selectedBranch.toString() === branch.id.toString();
                                 return (
                                     <div className="form-check" key={branch.id}>
-                                        <input 
-                                            className="form-check-input" 
-                                            type="radio" 
-                                            name="branch" 
-                                            id={`br-${branch.id}`} 
-                                            value={branch.id} 
-                                            checked={isUserBranch}
-                                            disabled={!isUserBranch} // --- LOCK LOGIC: Disable if not user's branch ---
-                                            onChange={(e) => setSelectedBranch(e.target.value)} 
-                                        />
-                                        <label className={`form-check-label ms-1 ${isUserBranch ? 'fw-bold text-dark' : 'text-muted'}`} htmlFor={`br-${branch.id}`}>
-                                            {branch.name}
-                                        </label>
+                                        <input className="form-check-input" type="radio" checked={isUserBranch} disabled={!isUserBranch} readOnly />
+                                        <label className={`form-check-label ms-1 ${isUserBranch ? 'fw-bold text-dark' : 'text-muted'}`}>{branch.name}</label>
                                     </div>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {/* Date Range Section */}
                     <div className="row mb-5">
                         <div className="col-md-6 mb-3">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Date From <span className="text-danger">*</span></label>
-                            <input type="date" className="form-control" value={dateFrom} 
-                                onChange={(e) => {setDateFrom(e.target.value); setErrors({...errors, dateFrom: false})}} 
+                           <input type="date" className="form-control" value={dateFrom} 
+                                onChange={(e) => { setDateFrom(e.target.value); setErrors({...errors, dateFrom: false}); }} 
                                 style={getInputStyle(errors.dateFrom)} />
                         </div>
                         <div className="col-md-6">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Date To <span className="text-danger">*</span></label>
                             <input type="date" className="form-control" value={dateTo} 
-                                onChange={(e) => {setDateTo(e.target.value); setErrors({...errors, dateTo: false})}} 
+                                onChange={(e) => { setDateTo(e.target.value); setErrors({...errors, dateTo: false}); }} 
                                 style={getInputStyle(errors.dateTo)} />
                         </div>
                     </div>
 
-                    {/* Table Section */}
                     <div className="table-responsive">
                         <table className="table table-sm" style={{ border: '1px solid #e0e0e0', borderCollapse: 'collapse' }}>
                             <thead style={{ backgroundColor: '#ffffff' }}>
                                 <tr style={{ color: '#004a99', fontSize: '14px' }}>
-                                    <th className="p-2 border" style={{ width: '50px' }}></th>
+                                    <th className="p-2 border" style={{ width: '50px' }}>#</th>
                                     <th className="p-2 border text-center">Date</th>
                                     <th className="p-2 border text-center">Business Purpose</th>
                                     <th className="p-2 border text-center">Start Post Code</th>
@@ -301,7 +298,6 @@ const FormsComponent = () => {
                         <button type="button" onClick={addRow} style={{ background: '#004a99', color: 'white', border: 'none', borderRadius: '5px', padding: '5px 15px', fontSize: '13px' }}>+ Add Row</button>
                     </div>
 
-                    {/* Summary Section */}
                     <div className="d-flex row">
                         <div className="mt-3 col-md-4">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Total Miles:</label>
@@ -310,16 +306,6 @@ const FormsComponent = () => {
                         <div className="mt-3 col-md-4">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Total Mileage (£):</label>
                             <input type="text" className="form-control bg-light" value={(totalMiles * rate).toFixed(2)} disabled style={{ borderRadius: '8px', padding: '12px' }} />
-                        </div>
-                    </div>
-
-                    {/* Declaration Section */}
-                    <div className="mt-5 p-3" style={{ border: '1px dashed #004a99', borderRadius: '10px', backgroundColor: '#f9fbff' }}>
-                        <div className="form-check">
-                            <input className="form-check-input" type="checkbox" id="policyAgreement" required style={{ cursor: 'pointer' }} />
-                            <label className="form-check-label ms-2" htmlFor="policyAgreement" style={{ color: '#002b5c', fontSize: '14px', cursor: 'pointer' }}>
-                                I confirm that the mileage claimed is business-related. <span className="text-danger">*</span>
-                            </label>
                         </div>
                     </div>
 

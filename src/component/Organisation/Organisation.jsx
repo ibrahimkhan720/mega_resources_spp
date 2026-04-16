@@ -121,7 +121,7 @@ export class Organisation extends Component {
                       <div className="mb-1"><i className="fa-solid fa-phone me-2"></i> {lead.number}</div>
                       <div><i className="fa-solid fa-envelope me-2"></i> {lead.email}</div>
                     </div>
-                    <div className="text-muted small fw-bold">Reports To: {lead.reports_to_id}</div>
+                    <div className="text-muted small fw-bold">Reports To: {lead.report_to?.title}</div>
                   </div>
                 </div>
               ))
@@ -148,7 +148,7 @@ export class Organisation extends Component {
                           <span><i className="fa-solid fa-phone me-2"></i> {m.number}</span>
                           <span><i className="fa-solid fa-envelope me-2"></i> {m.email}</span>
                         </div>
-                        <div className="text-muted small mt-2">Reports To: {m.reports_to_id}</div>
+                        <div className="text-muted small mt-2">Reports To: {m.report_to?.title}</div>
                       </div>
                     </div>
                   ))
@@ -176,7 +176,7 @@ export class Organisation extends Component {
                            <span><i className="fa-solid fa-phone me-2"></i> {staff.number}</span>
                            <span><i className="fa-solid fa-envelope me-2"></i> {staff.email}</span>
                         </div>
-                        <div className="text-muted small mt-2">Reports To: {staff.reports_to_id}</div>
+                        <div className="text-muted small mt-2">Reports To: {staff.report_to?.title}</div>
                       </div>
                     </div>
                   ))
@@ -204,7 +204,7 @@ export class Organisation extends Component {
                           <span><i className="fa-solid fa-phone me-2"></i> {hr.number}</span>
                           <span><i className="fa-solid fa-envelope me-2"></i> {hr.email}</span>
                         </div>
-                        <div className="text-muted small mt-2">Reports To: {hr.reports_to_id}</div>
+                        <div className="text-muted small mt-2">Reports To: {hr.report_to?.title}</div>
                     </div>
                   </div>
                  ))
