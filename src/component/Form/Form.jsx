@@ -20,7 +20,6 @@ const FormsComponent = () => {
     const [branchList, setBranchList] = useState([]); 
     const [selectedBranch, setSelectedBranch] = useState(""); 
     
-    // Profile Rates from LocalStorage
     const [ratesFromProfile, setRatesFromProfile] = useState({ general: 0, social: 0 });
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -36,13 +35,12 @@ const FormsComponent = () => {
             setFirstName(userData.name || "");
             setLastName(userData.last_name || "");
             
-            // Branch set kar rahe hain profile se
+            // --- BRANCH LOCK LOGIC ---
+            // Profile se branch ID lekar state mein set kar rahe hain
             if (userData.branch?.id) {
                 setSelectedBranch(userData.branch.id.toString());
             }
 
-            // Profile se mileage rates nikal rahe hain
-            // Note: Make sure backend profile object mein yehi keys hon
             setRatesFromProfile({
                 general: parseFloat(userData.branch?.general_rate) || 0,
                 social: parseFloat(userData.branch?.social_rate) || 0
@@ -91,9 +89,28 @@ const FormsComponent = () => {
         if (!selectedBranch) newErrors.branch = true;
         if (!rate || rate === 0) newErrors.rate = true;
 
-        if (dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)) {
-            newErrors.dateRange = true;
-            Swal.fire({ icon: 'warning', title: 'Date Error', text: 'Date From cannot be greater than Date To', confirmButtonColor: '#004a99' });
+        const from = new Date(dateFrom);
+        const to = new Date(dateTo);
+
+        // Date Range logic
+        if (dateFrom && dateTo && from > to) {
+            Swal.fire({ icon: 'warning', title: 'Date Range Error', text: 'Date From cannot be greater than Date To', confirmButtonColor: '#004a99' });
+            return false;
+        }
+
+        // --- TABLE DATE VALIDATION LOGIC ---
+        const filledRows = rows.filter(row => row.date !== "");
+        for (let i = 0; i < filledRows.length; i++) {
+            const rowDate = new Date(filledRows[i].date);
+            if (rowDate < from || rowDate > to) {
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Invalid Row Date', 
+                    text: `Date in row ${i + 1} must be between ${dateFrom} and ${dateTo}`,
+                    confirmButtonColor: '#d33' 
+                });
+                return false;
+            }
         }
 
         setErrors(newErrors);
@@ -106,7 +123,7 @@ const FormsComponent = () => {
 
         const filledRows = rows.filter(row => row.date && row.purpose && row.miles);
         if (filledRows.length === 0) {
-            Swal.fire({ icon: 'info', title: 'Table Empty', text: 'Please fill at least one row.', confirmButtonColor: '#004a99' });
+            Swal.fire({ icon: 'info', title: 'Empty Form', text: 'Please fill at least one row with details and miles.', confirmButtonColor: '#004a99' });
             return;
         }
 
@@ -137,7 +154,7 @@ const FormsComponent = () => {
             await mileage(payload);
             Swal.fire({ icon: 'success', title: 'Submitted!', text: 'Your claim has been recorded successfully.', confirmButtonColor: '#00b341' });
         } catch (error) {
-            const errorMessage = error.response?.data?.message || "Something went wrong on the server.";
+            const errorMessage = error.response?.data?.message || "Server connection error.";
             Swal.fire({ icon: 'error', title: 'Oops...', text: errorMessage, confirmButtonColor: '#d33' });
         }
     };
@@ -161,22 +178,23 @@ const FormsComponent = () => {
                 <h2 className="fw-bold mb-3" style={{ color: '#004a99' }}>Mileage Tracking and Reimbursement Form</h2>
                 
                 <form onSubmit={handleSubmit}>
+                    {/* Name Section */}
                     <div className="row mb-4">
                         <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Full Name <span className="text-danger">*</span></label>
                         <div className="col-md-6 mb-2">
                             <input type="text" className="form-control" placeholder="First name" value={firstName} 
-                                onChange={(e) => {setFirstName(e.target.value); setErrors({...errors, firstName: false})}} 
+                                onChange={(e) => setFirstName(e.target.value)} 
                                 style={getInputStyle(errors.firstName)} />
                         </div>
                         <div className="col-md-6">
                             <input type="text" className="form-control" placeholder="Surname" value={lastName} 
-                                onChange={(e) => {setLastName(e.target.value); setErrors({...errors, lastName: false})}} 
+                                onChange={(e) => setLastName(e.target.value)} 
                                 style={getInputStyle(errors.lastName)} />
                         </div>
                     </div>
 
+                    {/* Trip & Rate Section */}
                     <div className="row mb-4">
-                        {/* Trip Type Dropdown */}
                         <div className="col-md-4">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Trip Type <span className="text-danger">*</span></label>
                             <select 
@@ -194,29 +212,42 @@ const FormsComponent = () => {
                             </select>
                         </div>
 
-                        {/* Rate Field (Auto updated) */}
                         <div className="col-md-4">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Rate Per Mile (£)</label>
                             <input type="text" className="form-control bg-light" value={rate} readOnly style={{ borderRadius: '8px', padding: '12px' }} />
                         </div>
                     </div>
 
+                    {/* Branch Section (Locked) */}
                     <div className="mb-4">
-                        <label className={`fw-bold mb-2 ${errors.branch ? 'text-danger' : ''}`} style={{ color: errors.branch ? '#ff4d4d' : '#004a99' }}>
-                            Branch: <span className="text-danger">*</span>
+                        <label className="fw-bold mb-2" style={{ color: '#004a99' }}>
+                            Branch: (Auto-selected based on your profile)
                         </label>
-                        <div className={`flex-wrap gap-3 ${errors.branch ? 'p-2 border border-danger rounded' : ''}`}>
-                            {branchList.map((branch) => (
-                                <div className="form-check" key={branch.id}>
-                                    <input className="form-check-input" type="radio" name="branch" id={`br-${branch.id}`} value={branch.id} 
-                                        checked={selectedBranch.toString() === branch.id.toString()} 
-                                        onChange={(e) => {setSelectedBranch(e.target.value); setErrors({...errors, branch: false})}} />
-                                    <label className="form-check-label ms-1" htmlFor={`br-${branch.id}`} style={{ color: '#004a99', cursor: 'pointer' }}>{branch.name}</label>
-                                </div>
-                            ))}
+                        <div className="d-flex flex-wrap gap-3 p-3 bg-light rounded" style={{ border: '1px solid #dee2e6' }}>
+                            {branchList.map((branch) => {
+                                const isUserBranch = selectedBranch.toString() === branch.id.toString();
+                                return (
+                                    <div className="form-check" key={branch.id}>
+                                        <input 
+                                            className="form-check-input" 
+                                            type="radio" 
+                                            name="branch" 
+                                            id={`br-${branch.id}`} 
+                                            value={branch.id} 
+                                            checked={isUserBranch}
+                                            disabled={!isUserBranch} // --- LOCK LOGIC: Disable if not user's branch ---
+                                            onChange={(e) => setSelectedBranch(e.target.value)} 
+                                        />
+                                        <label className={`form-check-label ms-1 ${isUserBranch ? 'fw-bold text-dark' : 'text-muted'}`} htmlFor={`br-${branch.id}`}>
+                                            {branch.name}
+                                        </label>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
+                    {/* Date Range Section */}
                     <div className="row mb-5">
                         <div className="col-md-6 mb-3">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Date From <span className="text-danger">*</span></label>
@@ -232,6 +263,7 @@ const FormsComponent = () => {
                         </div>
                     </div>
 
+                    {/* Table Section */}
                     <div className="table-responsive">
                         <table className="table table-sm" style={{ border: '1px solid #e0e0e0', borderCollapse: 'collapse' }}>
                             <thead style={{ backgroundColor: '#ffffff' }}>
@@ -269,7 +301,8 @@ const FormsComponent = () => {
                         <button type="button" onClick={addRow} style={{ background: '#004a99', color: 'white', border: 'none', borderRadius: '5px', padding: '5px 15px', fontSize: '13px' }}>+ Add Row</button>
                     </div>
 
-                    <div className="d-block row">
+                    {/* Summary Section */}
+                    <div className="d-flex row">
                         <div className="mt-3 col-md-4">
                             <label className="fw-bold mb-2" style={{ color: '#004a99' }}>Total Miles:</label>
                             <input type="text" className="form-control bg-light" value={totalMiles} disabled style={{ borderRadius: '8px', padding: '12px' }} />
@@ -280,6 +313,7 @@ const FormsComponent = () => {
                         </div>
                     </div>
 
+                    {/* Declaration Section */}
                     <div className="mt-5 p-3" style={{ border: '1px dashed #004a99', borderRadius: '10px', backgroundColor: '#f9fbff' }}>
                         <div className="form-check">
                             <input className="form-check-input" type="checkbox" id="policyAgreement" required style={{ cursor: 'pointer' }} />

@@ -11,32 +11,32 @@ import { POLICY_FILE_URL } from "../../utility/policiesimage"
 const Mega_Olympics = () => {
   const [policies, setPolicies] = useState([]);
   const [meetings, setMeetings] = useState([]);
-  const [announcement, setAnnouncement] = useState("Loading...");
+  const [announcement, setAnnouncement] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        // 1. Policies Fetch
-        const policyRes = await getPolicies();
+        const [policyRes, meetingRes, announceRes] = await Promise.all([
+          getPolicies(),
+          getmeeting(),
+          getannouncement()
+        ]);
+
         if (policyRes && policyRes.success) {
           setPolicies(policyRes.info || []);
         }
 
-        // 2. Meetings Fetch
-        const meetingRes = await getmeeting();
         if (meetingRes) {
           setMeetings(meetingRes.info || meetingRes.data || []);
         }
 
-        // 3. Announcement Logic (Fixed)
-        const announceRes = await getannouncement();
         if (announceRes && announceRes.success && Array.isArray(announceRes.info)) {
           if (announceRes.info.length > 0) {
-            // Pehla record array se uthaya
             const latestItem = announceRes.info;
-            // Message agar null ho to Title dikhaye
-            const textToDisplay = latestItem.announcement_message || latestItem.announcement_title;
-            setAnnouncement(textToDisplay || "Welcome to Mega Careline");
+            const textToDisplay = latestItem[0].announcement_message;
+            setAnnouncement(textToDisplay);
           } else {
             setAnnouncement("No updates available");
           }
@@ -45,6 +45,8 @@ const Mega_Olympics = () => {
       } catch (error) {
         console.error("Data fetch error:", error);
         setAnnouncement("Failed to load news");
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -65,7 +67,6 @@ const Mega_Olympics = () => {
     window.open(fullUrl, '_blank');
   };
 
-  // --- Styles (Aapka original design) ---
   const cardStyle = {
     height: "28rem",
     overflowY: "auto",
@@ -88,11 +89,15 @@ const Mega_Olympics = () => {
   return (
     <div className="mega-container-wrapper" style={{ padding: "30px 6rem 0" }}>
       
-      {/* News Bar Design */}
+      {/* News Bar */}
       <div className="mega-news-bar d-flex align-items-center justify-content-between mb-4">
-        <div className="d-flex align-items-center overflow-hidden">
+        <div className="d-flex align-items-center overflow-hidden w-100">
           <span className="news-label">NEWS</span>
-             <span className="news-headline">{announcement}</span>
+          {loading ? (
+            <div className="skeleton skeleton-text w-50 ms-3"></div>
+          ) : (
+            <span className="news-headline">{announcement}</span>
+          )}
         </div>
         <div className="news-end-dot"><FontAwesomeIcon icon={faCircle} /></div>
       </div>
@@ -107,26 +112,29 @@ const Mega_Olympics = () => {
             </div>
             
             <div className="meetings-content">
-              {meetings.length > 0 ? (
+              {loading ? (
+                // Meeting Skeleton Loader
+                [...Array(4)].map((_, i) => (
+                  <div key={i} className="meeting-row d-flex align-items-center mb-4 border-bottom pb-2">
+                    <div className="skeleton" style={{ width: '60px', height: '60px', borderRadius: '8px' }}></div>
+                    <div className="ms-3 w-75">
+                      <div className="skeleton skeleton-text mb-2" style={{ width: '80%' }}></div>
+                      <div className="skeleton skeleton-text sm" style={{ width: '40%' }}></div>
+                    </div>
+                  </div>
+                ))
+              ) : meetings.length > 0 ? (
                 meetings.map((item) => {
                   const { day, month, weekday } = parseMeetingDate(item.date);
                   return (
                     <div key={item.id} className="meeting-row d-flex align-items-start mb-3 border-bottom pb-2">
                       <div className="date-box text-center" style={{ minWidth: '60px' }}>
-                        <div className="month" style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>
-                          {weekday}
-                        </div>
-                        <div className="day" style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>
-                          {day}
-                        </div>
-                        <div className="month" style={{ fontSize: '0.8rem', textTransform: 'uppercase' }}>
-                          {month}
-                        </div>
+                        <div className="month" style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{weekday}</div>
+                        <div className="day" style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{day}</div>
+                        <div className="month" style={{ fontSize: '0.8rem', textTransform: 'uppercase' }}>{month}</div>
                       </div>
-                      <div className="meeting-text ml-3">
-                        <h3 className="meeting-name" style={{ fontSize: '1.1rem', marginBottom: '2px' }}>
-                          {item.subject}
-                        </h3>
+                      <div className="meeting-text ms-3">
+                        <h3 className="meeting-name" style={{ fontSize: '1.1rem', marginBottom: '2px' }}>{item.subject}</h3>
                         <p className="meeting-time text-muted" style={{ fontSize: '0.9rem' }}>
                           {item.time} {item.location && `| ${item.location}`}
                         </p>
@@ -150,7 +158,12 @@ const Mega_Olympics = () => {
             </div>
 
             <div className="policies-scroll-list">
-              {policies.length > 0 ? (
+              {loading ? (
+                // Policies Skeleton Loader
+                [...Array(6)].map((_, i) => (
+                  <div key={i} className="skeleton skeleton-btn mb-3"></div>
+                ))
+              ) : policies.length > 0 ? (
                 policies.map((item) => (
                   <div
                     key={item.id}

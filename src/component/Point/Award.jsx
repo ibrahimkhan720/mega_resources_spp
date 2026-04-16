@@ -7,7 +7,7 @@ export class Award extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      rewards: [], 
+      rewards: [],
       loading: true
     };
   }
@@ -28,6 +28,9 @@ export class Award extends Component {
   render() {
     const { rewards, loading } = this.state;
 
+    // Skeleton rows for loading state
+    const skeletonRows = Array(5).fill(0);
+
     return (
       <div className="rewards-container">
         <div className="rewards-card">
@@ -47,9 +50,17 @@ export class Award extends Component {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td colSpan="2" className="text-center py-3">Loading...</td>
-                  </tr>
+                  // --- Skeleton Loading Rows ---
+                  skeletonRows.map((_, index) => (
+                    <tr key={`skeleton-${index}`}>
+                      <td>
+                        <div className="skeleton-line-blue" style={{ width: '60%', height: '20px' }}></div>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="skeleton-line-blue" style={{ width: '40px', height: '20px', borderRadius: '12px' }}></div>
+                      </td>
+                    </tr>
+                  ))
                 ) : rewards.length > 0 ? (
                   rewards.map((item, index) => (
                     <tr key={item.id || index}>

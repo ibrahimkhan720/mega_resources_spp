@@ -7,19 +7,21 @@ import { getcareer } from '@/Api/CareerPathawayapi';
 const Career = () => {
     // States for data and loading
     const [pathways, setPathways] = useState([]);
+    const [loading, setLoading] = useState(true); // Loading state add ki
 
     useEffect(() => {
         const fetchCareerData = async () => {
             try {
+                setLoading(true);
                 const response = await getcareer();
-                // Postman se 'info' array utha rahe hain
                 if (response && response.info) {
                     setPathways(response.info);
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
-            } 
-            
+            } finally {
+                setLoading(false);
+            }
         };
         fetchCareerData();
     }, []);
@@ -28,7 +30,7 @@ const Career = () => {
         <div className="career-page-container py-4">
             <div className="container main-wrapper">
                 
-                {/* Back Button - Same as old */}
+                {/* Back Button */}
                 <div className="mb-3 px-2">
                     <Link href="/" className="back-link text-decoration-none">
                         <i className="fa-solid fa-arrow-left me-2"></i> Back to Dashboard
@@ -76,8 +78,35 @@ const Career = () => {
                         </div>
                     </div>
 
-                    {/* DYNAMIC REQUIREMENTS - Old Design Loop */}
-                    {(pathways.map((item, index) => (
+                    {/* DYNAMIC REQUIREMENTS SECTION */}
+                    {loading ? (
+                        /* Skeleton Placeholders */
+                        [...Array(2)].map((_, index) => (
+                            <div key={index} className="requirement-section mb-5">
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <div className="skeleton skeleton-text w-25 h-large"></div>
+                                    <div className="skeleton skeleton-text w-10 h-large"></div>
+                                </div>
+                                <div className="skeleton skeleton-text w-50 mb-4"></div>
+                                
+                                <div className="list-group mb-3">
+                                    {[...Array(3)].map((_, i) => (
+                                        <div key={i} className="skeleton skeleton-card mb-2" style={{ height: "50px", borderRadius: "8px" }}></div>
+                                    ))}
+                                </div>
+
+                                <div className="progress-area mt-4">
+                                    <div className="d-flex justify-content-between mb-2">
+                                        <div className="skeleton skeleton-text w-25"></div>
+                                        <div className="skeleton skeleton-text w-10"></div>
+                                    </div>
+                                    <div className="skeleton w-100" style={{ height: '8px', borderRadius: '4px' }}></div>
+                                </div>
+                                <hr className="mt-5" style={{ opacity: '0.1' }} />
+                            </div>
+                        ))
+                    ) : (
+                        pathways.map((item, index) => (
                             <div key={item.id || index} className="requirement-section mb-5">
                                 <div className="d-flex justify-content-between align-items-center mb-1">
                                     <h5 className="fw-bold m-0 section-title">{item.title}</h5>
@@ -85,10 +114,9 @@ const Career = () => {
                                 </div>
                                 <p className="text-muted x-small mb-3">Requirements to progress to next level</p>
                                 
-                             <div className="list-group mb-3">
+                                <div className="list-group mb-3">
                                     {(() => {
                                         let requirementsArray = [];
-                                        
                                         try {
                                             if (Array.isArray(item.requirements)) {
                                                 requirementsArray = item.requirements;
@@ -112,7 +140,7 @@ const Career = () => {
                                     })()}
                                 </div>
 
-                                <div className="progress-area">
+                                {/* <div className="progress-area">
                                     <div className="d-flex justify-content-between x-small text-muted mb-1">
                                         <span>Points Required: {item.points_required}</span>
                                         <span>0 / {item.requirements?.length || 0}</span>
@@ -120,7 +148,7 @@ const Career = () => {
                                     <div className="progress" style={{ height: '6px' }}>
                                         <div className="progress-bar bg-success" style={{ width: '0%' }}></div>
                                     </div>
-                                </div>
+                                </div> */}
                                 <hr className="mt-5" style={{ opacity: '0.1' }} />
                             </div>
                         ))

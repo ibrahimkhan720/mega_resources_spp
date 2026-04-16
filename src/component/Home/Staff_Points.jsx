@@ -18,12 +18,11 @@ export class Staff_Points extends Component {
       showThankYou: false,
       rewards: [],
       achievements: [], 
-      loading: false,
       rewardsLoading: false,
-      redeemedIds: [],
       staffData: {
         name: "",
         points: 0, 
+        hours: 0,
         branch_id: "",
         department_id: "",
         staff_img: null
@@ -35,39 +34,31 @@ export class Staff_Points extends Component {
     this.fetchInitialData();
   }
 
-  // ✅ INSTANT UI LOAD (NON-BLOCKING)
   fetchInitialData = async () => {
     try {
       const profile = JSON.parse(localStorage.getItem('user_data'));
 
-      // 🔥 SHOW UI IMMEDIATELY
+      // Pehle Local Storage se data set karein
       this.setState({
         staffData: {
           name: profile?.name || "Staff Member",
           branch_id: profile?.branch?.name || profile?.branch_id || "N/A",
           department_id: profile?.department?.name || profile?.department_id || "N/A",
           staff_img: profile?.staff_img || null,
-          points: 0
+          points: Number(profile?.points || 0),
+          hours: Number(profile?.hours || 0) 
         }
       });
 
-      // 🚀 LOAD POINTS (FAST)
-      getStaffProfile().then((res) => {
-        const fresh = res?.info || res?.data || res;
-
-        this.setState((prev) => ({
-          staffData: {
-            ...prev.staffData,
-            points: Number(fresh?.points || 0)
-          }
-        }));
-      });
-
-      // 🚀 LOAD ACHIEVEMENTS
+      // Phir API se taaza data lein
+      this.updatePoints();
+      
+      // Achievements API se targets lein
       getachievement().then((res) => {
-        this.setState({
-          achievements: res?.info || []
-        });
+        const achData = res?.info || res?.data || [];
+        // Hours ke hisab se sort kar dein taake order sahi rahe (1000, 2000...)
+        const sortedAch = achData.sort((a, b) => Number(a.hours) - Number(b.hours));
+        this.setState({ achievements: sortedAch });
       });
 
     } catch (error) {
@@ -75,54 +66,46 @@ export class Staff_Points extends Component {
     }
   }
 
-  // 🚀 LOAD REWARDS ONLY WHEN MODAL OPENS
-  openClaimModal = async () => {
-    this.setState({ isOpen: true });
-
-    if (this.state.rewards.length === 0) {
-      try {
-        this.setState({ rewardsLoading: true });
-
-        const res = await getreward();
-        const rewardsData = res?.info || [];
-
-        this.setState({
-          rewards: rewardsData,
-          redeemedIds: rewardsData
-            .filter(r => r.is_claimed === true || r.is_claimed === 1)
-            .map(r => r.id),
-        });
-
-      } catch (error) {
-        console.error("Rewards Error:", error);
-      } finally {
-        this.setState({ rewardsLoading: false });
+  updatePoints = async () => {
+    const res = await getStaffProfile();
+    const fresh = res?.info || res?.data || res;
+    this.setState((prev) => ({
+      staffData: {
+        ...prev.staffData,
+        points: Number(fresh?.points || 0),
+        hours: Number(fresh?.hours || 0)
       }
+    }));
+  }
+
+  fetchRewards = async () => {
+    try {
+      this.setState({ rewardsLoading: true });
+      const res = await getreward();
+      this.setState({ rewards: res?.info || [] });
+    } catch (error) {
+      console.error("Rewards Error:", error);
+    } finally {
+      this.setState({ rewardsLoading: false });
     }
   }
 
-  // ✅ CLAIM OPTIMIZED
-  handleClaim = async (id) => {
+  openClaimModal = () => {
+    this.setState({ isOpen: true }, () => {
+        this.fetchRewards(); 
+    });
+  }
+
+  handleClaim = async (id, cost) => {
+    if (this.state.staffData.points < cost) return;
+
     try {
       await claimReward(id, {});
-
-      this.setState((prevState) => ({
-        redeemedIds: [...prevState.redeemedIds, id],
+      this.setState({
         isOpen: false,
         showThankYou: true
-      }));
-
-      // 🔥 UPDATE POINTS ONLY
-      const profileRes = await getStaffProfile();
-      const fresh = profileRes?.info || profileRes?.data || profileRes;
-
-      this.setState((prev) => ({
-        staffData: {
-          ...prev.staffData,
-          points: Number(fresh?.points || 0)
-        }
-      }));
-
+      });
+      await this.updatePoints();
     } catch (error) {
       console.error("Claim Error:", error);
     }
@@ -137,34 +120,32 @@ export class Staff_Points extends Component {
   }
 
   render() {
-    const { staffData, rewards, achievements, rewardsLoading, redeemedIds, isOpen, showThankYou } = this.state;
-  
-    const userImageUrl = staffData.staff_img 
-      ? `${PROFILE_FILE_URL}/${staffData.staff_img}` 
-      : "/default-avatar.png";
-  
-    const isProfileLoading = staffData.points === 0;
-  
+    const { staffData, rewards, achievements, rewardsLoading, isOpen, showThankYou } = this.state;
+    const userImageUrl = staffData.staff_img ? `${PROFILE_FILE_URL}/${staffData.staff_img}` : "/default-avatar.png";
+    const isProfileLoading = staffData.points === 0 && achievements.length === 0;
+
+    // Logic: Agla achievement dhoondein jo abhi poora nahi hua
+    const nextTargetIndex = achievements.findIndex(ach => staffData.hours < Number(ach.hours));
+
     return (
       <section className="container-fluid main-hero-section my-4">
         <div className="heroSection px-4 px-lg-5">
           <div className="row align-items-center justify-content-between g-0">
-  
-            {/* LEFT */}
+            
             <div className="col-lg-7 py-3">
-              <div className="badge rounded-pill pointsBadge">
-                My Points:{" "}
-                <span className="fw-bold">
-                  {isProfileLoading 
-                    ? <span className="skeleton skeleton-text sm"></span> 
-                    : staffData.points}
-                </span>
+              <div className="d-flex gap-2 mb-2 flex-wrap">
+                <div className="badge rounded-pill pointsBadge">
+                  My Points: <span className="fw-bold">{staffData.points}</span>
+                </div>
+                <div className="badge rounded-pill pointsBadge">
+                  Hours: <span className="fw-bold">{staffData.hours}</span>
+                </div>
               </div>
-  
+
               <h1 className="h3 fw-normal mb-4 text-white">
                 Your <span className="fw-bold">Staff Points Plan</span>
               </h1>
-  
+
               <div className="icons d-flex flex-wrap gap-3">
                 {achievements.length === 0
                   ? [...Array(4)].map((_, i) => (
@@ -174,116 +155,102 @@ export class Staff_Points extends Component {
                       </div>
                     ))
                   : achievements.map((ach, index) => {
-                      const style = [
-                        { color: '#00c1a1', icon: faCheck },
-                        { color: '#00c1a1', icon: faCheck },
-                        { color: '#ffc107', icon: faStar, active: true },
-                        { color: '#ff6b6b', icon: faStop }
-                      ][index] || { color: '#00c1a1', icon: faCheck };
-  
+                      const targetValue = Number(ach.hours);
+                      const isCompleted = staffData.hours >= targetValue;
+                      const isCurrent = index === nextTargetIndex;
+
+                      let bgColor = '#ff6b6b'; // Default Red
+                      let icon = faStop;      // Default Stop
+                      let circleClass = "iconCircle";
+
+                      if (isCompleted) {
+                        bgColor = '#00c1a1'; // Green
+                        icon = faCheck;
+                      } else if (isCurrent) {
+                        bgColor = '#ffc107'; // Yellow
+                        icon = faStar;
+                        circleClass += " activeCircle starAnimation"; // Zoom effect
+                      }
+
                       return (
                         <div className="text-center" key={index}>
-                          <div className={`iconCircle ${style.active ? 'activeCircle starAnimation' : ''}`} 
-                               style={{ backgroundColor: style.color }}>
-                            <FontAwesomeIcon icon={style.icon} />
+                          <div className={circleClass} style={{ backgroundColor: bgColor }}>
+                            <FontAwesomeIcon icon={icon} />
                           </div>
-                          <small className="fw-bold d-block text-white">{ach.hours} hrs</small>
+                          <small className="fw-bold d-block text-white">{targetValue} hrs</small>
                         </div>
                       );
                     })}
               </div>
             </div>
-  
-            {/* RIGHT */}
+
             <div className="col-lg-3 text-center text-lg-end py-3">
               <div className="d-inline-block text-center">
-  
                 <div className="profileImageContainer shadow-sm">
-                  {isProfileLoading ? (
-                    <div className="skeleton skeleton-avatar"></div>
-                  ) : (
                     <Image 
                       src={userImageUrl} 
                       alt={staffData.name}
-                      width={120} 
-                      height={120} 
+                      width={120} height={120} 
                       className="w-100 h-100" 
                       style={{ objectFit: 'cover' }} 
-                      priority 
-                      unoptimized={true}
+                      priority unoptimized={true}
                     />
-                  )}
                 </div>
-  
-                <h5 className="mb-0 fw-bold text-white mt-2">
-                  {isProfileLoading 
-                    ? <span className="skeleton skeleton-text"></span> 
-                    : staffData.name}
-                </h5>
-  
-                <div className='justify-content-center text-center '>
-                  <p className="small text-white-50">
-                    {isProfileLoading 
-                      ? <span className="skeleton skeleton-text sm"></span> 
-                      : staffData.department_id}
-                  </p>
-                  <p className="small text-white-50">
-                    {isProfileLoading 
-                      ? <span className="skeleton skeleton-text sm"></span> 
-                      : `( Branch ${staffData.branch_id} )`}
-                  </p>
-                </div>
+
+                <h5 className="mb-0 fw-bold text-white mt-2">{staffData.name}</h5>
+                <p className="small text-white-50 mb-0">{staffData.department_id}</p>
+                <p className="small text-white-50">{`( Branch ${staffData.branch_id} )`}</p>
                 
-                <div className="d-flex justify-content-center gap-2">
+                <div className="d-flex justify-content-center gap-2 mt-3">
                   <button className="customBtn btnClaim" onClick={this.openClaimModal}>Claim</button>
                   <button className="customBtn btnView">View Profile</button>
                 </div>
-  
               </div>
             </div>
-  
           </div>
         </div>
-  
-        {/* MODAL */}
+
         <div className={`slideDownModal ${isOpen ? 'open' : ''}`}>
           <div className="innerModal bg-white p-4 p-md-5 mt-3 shadow-sm border rounded-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h4 className="fw-bold m-0">Your Staff Points Plan</h4>
-              <button onClick={this.toggleClaim} className="closeBtn">
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
+              <h4 className="fw-bold m-0">Available Rewards</h4>
+              <button onClick={this.toggleClaim} className="closeBtn"><FontAwesomeIcon icon={faTimes} /></button>
             </div>
-  
+
             <div className="row g-3">
-              {rewardsLoading
-                ? [...Array(6)].map((_, i) => (
-                    <div key={i} className="col-lg-3 col-md-6 col-sm-12">
-                      <div className="rewardCardItem p-3 text-center">
-                        <div className="skeleton skeleton-text"></div>
-                        <div className="skeleton skeleton-text sm mt-2"></div>
-                        <div className="skeleton skeleton-btn mt-3"></div>
-                      </div>
+              {rewardsLoading ? (
+                // Modal Skeleton Cards
+                [...Array(4)].map((_, i) => (
+                  <div key={i} className="col-lg-3 col-md-6 col-sm-12">
+                    <div className="rewardCardItem d-flex p-3 flex-column border rounded" style={{height: '180px'}}>
+                      <div className="skeleton skeleton-text w-75 mb-2"></div>
+                      <div className="skeleton skeleton-text w-50 mb-4"></div>
+                      <div className="skeleton skeleton-btn mt-auto"></div>
                     </div>
-                  ))
-                : rewards.map((reward, index) => {
-                    const rId = reward.id || index;
-                    const isRedeemed = redeemedIds.includes(rId);
-                    const cannotClaim = staffData.points < Number(reward.point_cost) && !isRedeemed;
-  
+                  </div>
+                ))
+              ) : rewards.map((reward) => {
+                    const cost = Number(reward.point_cost);
+                    const canAfford = staffData.points >= cost;
                     return (
-                      <div key={rId} className="col-lg-3 col-md-6 col-sm-12">
-                        <div className="rewardCardItem d-flex align-items-center p-3 text-center h-100 flex-column justify-content-between">
-                          <div>
-                            <p className="small fw-bold text-uppercase">{reward.reward_title}</p>
-                            <p className="small text-muted">{reward.point_cost} Points</p>
+                      <div key={reward.id} className="col-lg-3 col-md-6 col-sm-12">
+                        <div className="rewardCardItem d-flex align-items-center p-3 text-center h-100 flex-column justify-content-between border rounded">
+                          <div className="mb-3">
+                            <p className="small fw-bold text-uppercase mb-1">{reward.reward_title}</p>
+                            <p className="small text-muted mb-0">{reward.point_cost} Points</p>
                           </div>
                           <button 
-                            className={isRedeemed ? "btn-redeem" : "btn-claim"}
-                            onClick={() => this.handleClaim(rId)}
-                            disabled={cannotClaim || isRedeemed}
+                            className="btn-claim w-100"
+                            onClick={() => this.handleClaim(reward.id, cost)}
+                            disabled={!canAfford}
+                            style={{
+                              backgroundColor: canAfford ? '#00c951' : '#e0e0e0',
+                              color: canAfford ? '#fff' : '#888',
+                              border: 'none', padding: '8px', borderRadius: '5px',
+                              cursor: canAfford ? 'pointer' : 'not-allowed'
+                            }}
                           >
-                            {isRedeemed ? 'Redeemed' : (cannotClaim ? 'Locked' : 'Claim')}
+                            Claim
                           </button>
                         </div>
                       </div>
@@ -292,16 +259,16 @@ export class Staff_Points extends Component {
             </div>
           </div>
         </div>
-  
+
+
+        {/* THANK YOU MODAL */}
         {showThankYou && (
           <div className="thankYouOverlay">
             <div className="thankYouModal p-5 text-center shadow-lg rounded-4 bg-white">
-              <div className="mb-4">
-                 <FontAwesomeIcon icon={faCircleCheck} className="successAnimate" style={{fontSize: '70px', color: '#00c1a1'}} />
-              </div>
-              <h2 className="fw-bold mb-2" style={{color: '#333'}}>Thank You!</h2>
+              <FontAwesomeIcon icon={faCircleCheck} className="successAnimate mb-4" style={{fontSize: '70px', color: '#00c1a1'}} />
+              <h2 className="fw-bold mb-2">Thank You!</h2>
               <p className="text-muted mb-4">Your reward has been claimed successfully.</p>
-              <button className="customBtn btnClaim px-5" onClick={this.closeThankYou} style={{width: 'auto'}}>Got it!</button>
+              <button className="customBtn btnClaim px-5" onClick={this.closeThankYou}>Got it!</button>
             </div>
           </div>
         )}

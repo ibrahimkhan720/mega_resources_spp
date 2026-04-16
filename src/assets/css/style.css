@@ -186,8 +186,6 @@ body {
 }
 
 .btn-claim {
-    background: #00c951 !important;
-    color: white !important;
     width: 14rem;
     border-radius: 2rem;
     border: none;
@@ -816,10 +814,6 @@ input::-webkit-inner-spin-button {
     margin: 0;
 }
 
-/* Firefox ke liye */
-input[type=number] {
-    -moz-appearance: textfield;
-}
 
 .table-input {
     border: none;
@@ -1273,8 +1267,8 @@ input[type=number] {
     width: 35px;
     height: 35px;
     display: flex;
-    alignItems: center;
-    justifyContent: center;
+    align-items: center;
+    justify-content: center;
 }
 
 
@@ -1402,3 +1396,149 @@ input[type=number] {
         background-position: 200% 0;
     }
 }
+
+/* Base shimmer animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Common style for all skeletons */
+.skeleton-line-white, .skeleton-line-blue {
+  background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+/* White background cards ke liye (Blueish tint) */
+.skeleton-line-blue {
+  background: linear-gradient(90deg, #e0e8f0, #f8faff, #e0e8f0);
+  background-size: 200% 100%;
+}
+
+/* Colored cards ke liye (White transparent tint) */
+.skeleton-line-white {
+  background: linear-gradient(90deg, rgba(255,255,255,0.2), rgba(255,255,255,0.5), rgba(255,255,255,0.2));
+  background-size: 200% 100%;
+}
+
+
+/* Full Background 100% Opacity */
+.hr-full-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f4f7fa; /* Solid Background */
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeInHR 0.3s ease-in-out;
+}
+
+/* Modal Card Design */
+.hr-modal-box {
+    max-width: 480px;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 30px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    position: relative;
+    animation: slideUpHR 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Close 'X' Button */
+.hr-close-x {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.hr-close-x:hover {
+    color: #ff4d4d;
+}
+
+/* Icon Style */
+.hr-icon-circle {
+    width: 80px;
+    height: 80px;
+    background: #f0f4f8;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 35px;
+}
+
+.hr-modal-title {
+    color: #002b5c;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.hr-modal-desc {
+    color: #6c757d;
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+
+/* Number Container */
+.hr-number-card {
+    background: #f8fafd;
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid #eef2f7;
+}
+
+.hr-phone-link {
+    color: #00205b;
+    font-size: 36px;
+    font-weight: 800;
+    text-decoration: none;
+    letter-spacing: 1px;
+}
+
+/* Availability Badge */
+.hr-time-badge {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #856404;
+    background: #fff9e6;
+    padding: 8px 15px;
+    border-radius: 50px;
+    display: inline-block;
+    font-weight: 600;
+}
+
+/* Bottom Close Button */
+.hr-btn-close-bottom {
+    margin-top: 35px;
+    width: 100%;
+    padding: 15px;
+    background-color: #00205b;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.hr-btn-close-bottom:hover {
+    transform: scale(1.02);
+}
+

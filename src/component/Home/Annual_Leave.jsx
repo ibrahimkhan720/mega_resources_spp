@@ -15,8 +15,10 @@ export class Annual_Leave extends Component {
     super(props);
     this.state = {
       showModal: false,
+      available_leave: 0, // Yeh dynamic hoga
+      taken_leave: 10.5,   // Yeh static hai
       form: {
-        leave_type: "fullday", // Default value
+        leave_type: "fullday", 
         start_date: "",
         end_date: "",
         start_time: "",
@@ -29,14 +31,27 @@ export class Annual_Leave extends Component {
     };
   }
 
+  componentDidMount() {
+    this.loadLeaveStats();
+  }
+
+  loadLeaveStats = () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user_data'));
+      if (userData) {
+        this.setState({
+          available_leave: userData.number_of_annual_leave || 0
+        });
+      }
+    } catch (error) {
+      console.error("Error loading leave stats:", error);
+    }
+  }
+
   handleChange = (e) => {
     const { name, value } = e.target;
     this.setState({
-      form: {
-        ...this.state.form,
-        [name]: value
-      },
-      // Clear errors when user types
+      form: { ...this.state.form, [name]: value },
       errors: { ...this.state.errors, [name]: "" }
     });
   };
@@ -57,13 +72,11 @@ export class Annual_Leave extends Component {
     if (!reason) errors.reason = "Reason is required";
     if (!emergency_number) errors.emergency_number = "Emergency contact is required";
 
-    // Half Day Validation
     if (leave_type === 'half-day') {
       if (!start_time) errors.start_time = "Start time is required";
       if (!end_time) errors.end_time = "End time is required";
     }
 
-    // Custom Day Validation
     if (leave_type === 'custome-day') {
       if (!end_date) {
         errors.end_date = "End date is required";
@@ -104,7 +117,7 @@ export class Annual_Leave extends Component {
   };
 
   render() {
-    const { form, errors, showModal, successMessage } = this.state;
+    const { form, errors, showModal, successMessage, available_leave, taken_leave } = this.state;
 
     return (
       <div className="annual-leave-container">
@@ -115,14 +128,14 @@ export class Annual_Leave extends Component {
             <div className="leave-stat-box">
               <span className="leave-icon-large">{PalmTree}</span>
               <div className="leave-info">
-                <h2 className="leave-count">17.5</h2>
+                <h2 className="leave-count">{available_leave}</h2>
                 <p className="leave-label">Available Annual Leave</p>
               </div>
             </div>
             <div className="leave-stat-box">
               <span className="leave-icon-large">{Seedling}</span>
               <div className="leave-info">
-                <h2 className="leave-count">10.5</h2>
+                <h2 className="leave-count">{taken_leave}</h2>
                 <p className="leave-label">Annual Leave Taken</p>
               </div>
             </div>
@@ -142,7 +155,7 @@ export class Annual_Leave extends Component {
             <Image src={logoimage} alt="Vision" priority style={{ width: 'auto', height: 'auto', maxWidth: '70%' }} />
         </div>
 
-        {/* Modal Logic */}
+        {/* --- ORIGINAL MODAL LOGIC RESTORED --- */}
         {showModal && (
           <div className="custom-modal-overlay">
             <div className="custom-modal-content">
@@ -157,7 +170,6 @@ export class Annual_Leave extends Component {
               </div>
               
               <div className="modal-body-form">
-                {/* Leave Type Selector - Important for Backend */}
                 <div className="form-group-custom">
                   <label>Leave Type</label>
                   <select name="leave_type" className="form-control-custom" value={form.leave_type} onChange={this.handleChange}>
@@ -174,7 +186,6 @@ export class Annual_Leave extends Component {
                     {errors.start_date && <small className="text-danger">{errors.start_date}</small>}
                   </div>
 
-                  {/* Show End Date only for Custom Range */}
                   {form.leave_type === 'custome-day' && (
                     <div className="col-md-6 form-group-custom">
                       <label>End Date</label>
@@ -184,7 +195,6 @@ export class Annual_Leave extends Component {
                   )}
                 </div>
 
-                {/* Show Times only for Half Day */}
                 {form.leave_type === 'half-day' && (
                   <div className="row">
                     <div className="col-md-6 form-group-custom">

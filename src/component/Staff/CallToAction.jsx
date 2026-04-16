@@ -3,6 +3,23 @@
 import React, { Component } from 'react'
 
 export class CallToAction extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showModal: false
+    };
+  }
+
+  handleOpen = () => {
+    this.setState({ showModal: true });
+    if (typeof document !== 'undefined') document.body.style.overflow = 'hidden';
+  }
+
+  handleClose = () => {
+    this.setState({ showModal: false });
+    if (typeof document !== 'undefined') document.body.style.overflow = '';
+  }
+
   render() {
     return (
       <div className="container pb-5">
@@ -31,7 +48,8 @@ export class CallToAction extends Component {
             </p>
 
             <button 
-              className="btn px-4 py-2 fw-bold" 
+              onClick={this.handleOpen}
+              className="btn px-4 py-2 fw-bold contact-hr-btn" 
               style={{ 
                 backgroundColor: '#00205b', 
                 color: 'white', 
@@ -45,6 +63,30 @@ export class CallToAction extends Component {
             </button>
           </div>
         </div>
+
+        {/* --- HR Modal --- */}
+        {this.state.showModal && (
+          <div className="hr-full-overlay">
+            <div className="hr-modal-box">
+              <button className="hr-close-x" onClick={this.handleClose}>✕</button>
+              
+              <div className="hr-icon-circle">📞</div>
+              
+              <h2 className="hr-modal-title">HR Support Line</h2>
+              <p className="hr-modal-desc">Please call the number below for assistance</p>
+
+              <div className="hr-number-card">
+                <a href="tel:01536524205" className="hr-phone-link">
+                  01536 524 205
+                </a>
+              </div>
+
+              <button className="hr-btn-close-bottom" onClick={this.handleClose}>
+                Close Details
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
