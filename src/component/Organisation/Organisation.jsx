@@ -195,7 +195,7 @@ export class Organisation extends Component {
                 <div 
                   className="dropdown-section mb-3 d-flex justify-content-between align-items-center shadow-sm mx-1"
                   onClick={() => this.toggleSection(mId)}
-                  style={{ cursor: 'pointer', padding: '15px', borderRadius: '10px', backgroundColor: '#f8faff' }}
+                  style={{ cursor: 'pointer', padding: '15px', borderRadius: '10px', backgroundColor: '#ffffff' }}
                 >
                   <span className="fw-bold">
                     <i className={`${section.icon} me-2`} style={{ color: '#2563eb' }}></i> 
