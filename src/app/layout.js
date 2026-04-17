@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import "../assets/css/style.css";
 import "../assets/css/animation.css";
 import "../assets/css/responsive.css";
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 // 1. Brackets {} hatao aur default import karo
 import faveicon from "../assets/images/favicon-32x32.png"; 
