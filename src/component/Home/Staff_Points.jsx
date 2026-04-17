@@ -199,7 +199,7 @@ export class Staff_Points extends Component {
 
                 <h5 className="mb-0 fw-bold text-white mt-2">{staffData.name}</h5>
                 <p className="small text-white-50 mb-0">{staffData.department_id}</p>
-                <p className="small text-white-50">{`( Branch ${staffData.branch_id} )`}</p>
+                <p className="small text-white-50">{`( ${staffData.branch_id} )`}</p>
                 
                 <div className="d-flex justify-content-center gap-2 mt-3">
                   <button className="customBtn btnClaim" onClick={this.openClaimModal}>Claim</button>
