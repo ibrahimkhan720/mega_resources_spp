@@ -15,7 +15,7 @@ export default function Home() {
     const token = localStorage.getItem("token");
     
     if (!token) {
-      router.push("/Login");
+      router.push("/login");
     } else {
       setIsAuthenticated(true);
     }

@@ -6,6 +6,8 @@ import { faClock, faCalendarAlt, faTimes } from '@fortawesome/free-solid-svg-ico
 import logoimage from "../../assets/images/5ffac5b492ec250053baf0085380433da86f99d5.png"
 import Image from 'next/image'
 import { annualleave } from "@/Api/AnnualLeavepi";
+import { getpoints } from '@/Api/PointRuleapi'
+import { getStaffProfile } from "../../Api/Rewardapi"
 
 const PalmTree = "🌴"; 
 const Seedling = "🌱";
@@ -15,8 +17,8 @@ export class Annual_Leave extends Component {
     super(props);
     this.state = {
       showModal: false,
-      available_leave: 0, // Yeh dynamic hoga
-      taken_leave: 10.5,   // Yeh static hai
+      available_leave: 0, 
+      taken_leave: 0,   
       form: {
         leave_type: "fullday", 
         start_date: "",
@@ -27,7 +29,8 @@ export class Annual_Leave extends Component {
         emergency_number: ""
       },
       errors: {},
-      successMessage: ""
+      successMessage: "",
+      loading: true
     };
   }
 
@@ -35,16 +38,37 @@ export class Annual_Leave extends Component {
     this.loadLeaveStats();
   }
 
-  loadLeaveStats = () => {
+  loadLeaveStats = async () => {
     try {
-      const userData = JSON.parse(localStorage.getItem('user_data'));
-      if (userData) {
-        this.setState({
-          available_leave: userData.number_of_annual_leave || 0
-        });
-      }
+      // Dono APIs ko parallel call kiya taake speed achi rahe
+      const [profile, pointsRes] = await Promise.all([
+        getStaffProfile(),
+        getpoints()
+      ]);
+
+      // 1. Available Leave fetching
+      const available = Number(profile?.number_of_annual_leave) || 0;
+
+      // 2. Default Annual Leave fetching from getpoints()
+      // Screenshot ke mutabiq data 'info' array mein hai
+      const pointsList = pointsRes?.info || (Array.isArray(pointsRes) ? pointsRes : []);
+      
+      const defaultLeaveObj = pointsList.find(item => item.key === "default_annual_leave");
+      const totalAllowedLeave = defaultLeaveObj ? Number(defaultLeaveObj.value) : 0;
+
+      // Logic: Taken = Total Allowed - Currently Available
+      // Agar total 26 hai aur available 20 hai, to taken 6 hui.
+      const taken = totalAllowedLeave > 0 ? (totalAllowedLeave - available) : 0;
+
+      this.setState({
+        available_leave: available,
+        taken_leave: taken < 0 ? 0 : taken, // Ensure minus mein na jaye
+        loading: false
+      });
+
     } catch (error) {
       console.error("Error loading leave stats:", error);
+      this.setState({ loading: false });
     }
   }
 
@@ -109,6 +133,9 @@ export class Annual_Leave extends Component {
         }
       });
 
+      // Stats refresh karein submit ke baad
+      this.loadLeaveStats();
+
       setTimeout(() => this.toggleModal(), 2000);
   
     } catch (error) {
@@ -121,7 +148,7 @@ export class Annual_Leave extends Component {
 
     return (
       <div className="annual-leave-container">
-        {/* Statistics Card */}
+        {/* Statistics Card - Design remains untouched */}
         <div className="leave-card shadow-sm">
           <h5 className="leave-title">Annual Leave</h5>
           <div className="leave-content-row">
@@ -155,7 +182,7 @@ export class Annual_Leave extends Component {
             <Image src={logoimage} alt="Vision" priority style={{ width: 'auto', height: 'auto', maxWidth: '70%' }} />
         </div>
 
-        {/* --- ORIGINAL MODAL LOGIC RESTORED --- */}
+        {/* Modal Logic */}
         {showModal && (
           <div className="custom-modal-overlay">
             <div className="custom-modal-content">
