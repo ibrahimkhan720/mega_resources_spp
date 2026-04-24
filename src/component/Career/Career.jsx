@@ -43,42 +43,110 @@ const Career = () => {
                         <p className="text-muted">Explore progression opportunities and requirements within MEGA CARELINE</p>
                     </div>
 
-                    {/* TOP STEPS - Static design remains same */}
-                    <div className="row text-center mb-5 align-items-center g-0">
-                        <div className="col">
-                            <div className="step-item active">
-                                <div className="icon-circle main-icon active-bg"><i className="fa-solid fa-user-doctor"></i></div>
-                                <div className="mt-2 fw-bold small-text">Carer</div>
-                                <small className="text-muted d-block">Level 1</small>
-                            </div>
-                        </div>
-                        <div className="col-auto"><i className="fa-solid fa-arrow-right text-light-gray"></i></div>
-                        <div className="col">
-                            <div className="step-item">
-                                <div className="icon-circle main-icon"><i className="fa-solid fa-user-nurse"></i></div>
-                                <div className="mt-2 fw-bold small-text">Senior Carer</div>
-                                <small className="text-muted d-block">Level 2</small>
-                            </div>
-                        </div>
-                        <div className="col-auto"><i className="fa-solid fa-arrow-right text-light-gray"></i></div>
-                        <div className="col">
-                            <div className="step-item">
-                                <div className="icon-circle main-icon"><i className="fa-solid fa-user-group"></i></div>
-                                <div className="mt-2 fw-bold small-text">Care Coordinator</div>
-                                <small className="text-muted d-block">Level 3</small>
-                            </div>
-                        </div>
-                        <div className="col-auto"><i className="fa-solid fa-arrow-right text-light-gray"></i></div>
-                        <div className="col">
-                            <div className="step-item">
-                                <div className="icon-circle main-icon"><i className="fa-solid fa-user-tie"></i></div>
-                                <div className="mt-2 fw-bold small-text">Manager</div>
-                                <small className="text-muted d-block">Level 4</small>
-                            </div>
-                        </div>
-                    </div>
+                        <>
+                            {/*  Desktop View (hidden on mobile) */}
+                            <div className="row text-center mb-5 align-items-center g-0 d-none d-md-flex">
 
-                    {/* DYNAMIC REQUIREMENTS SECTION */}
+                                <div className="col">
+                                <div className="step-item active">
+                                    <div className="icon-circle main-icon active-bg">
+                                    <i className="fa-solid fa-user-doctor"></i>
+                                    </div>
+                                    <div className="mt-2 fw-bold small-text">Carer</div>
+                                    <small className="text-muted d-block">Level 1</small>
+                                </div>
+                                </div>
+
+                                <div className="col-auto">
+                                <i className="fa-solid fa-arrow-right text-light-gray"></i>
+                                </div>
+
+                                <div className="col">
+                                <div className="step-item">
+                                    <div className="icon-circle main-icon">
+                                    <i className="fa-solid fa-user-nurse"></i>
+                                    </div>
+                                    <div className="mt-2 fw-bold small-text">Senior Carer</div>
+                                    <small className="text-muted d-block">Level 2</small>
+                                </div>
+                                </div>
+
+                                <div className="col-auto">
+                                <i className="fa-solid fa-arrow-right text-light-gray"></i>
+                                </div>
+
+                                <div className="col">
+                                <div className="step-item">
+                                    <div className="icon-circle main-icon">
+                                    <i className="fa-solid fa-user-group"></i>
+                                    </div>
+                                    <div className="mt-2 fw-bold small-text">Care Coordinator</div>
+                                    <small className="text-muted d-block">Level 3</small>
+                                </div>
+                                </div>
+
+                                <div className="col-auto">
+                                <i className="fa-solid fa-arrow-right text-light-gray"></i>
+                                </div>
+
+                                <div className="col">
+                                <div className="step-item">
+                                    <div className="icon-circle main-icon">
+                                    <i className="fa-solid fa-user-tie"></i>
+                                    </div>
+                                    <div className="mt-2 fw-bold small-text">Manager</div>
+                                    <small className="text-muted d-block">Level 4</small>
+                                </div>
+                                </div>
+
+                            </div>
+
+                            {/*  Mobile View (hidden on desktop) */}
+                            <div className="row text-center mb-5 align-items-center g-0 d-flex d-md-none">
+
+                                <div className="col-6 mb-4">
+                                <div className="step-item active">
+                                    <div className="icon-circle main-icon active-bg">
+                                    <i className="fa-solid fa-user-doctor"></i>
+                                    </div>
+                                    <div className="mt-2 fw-bold small-text">Carer</div>
+                                    <small className="text-muted d-block">Level 1</small>
+                                </div>
+                                </div>
+
+                                <div className="col-6 mb-4">
+                                <div className="step-item">
+                                    <div className="icon-circle main-icon">
+                                    <i className="fa-solid fa-user-nurse"></i>
+                                    </div>
+                                    <div className="mt-2 fw-bold small-text">Senior Carer</div>
+                                    <small className="text-muted d-block">Level 2</small>
+                                </div>
+                                </div>
+
+                                <div className="col-6 mb-4">
+                                <div className="step-item">
+                                    <div className="icon-circle main-icon">
+                                    <i className="fa-solid fa-user-group"></i>
+                                    </div>
+                                    <div className="mt-2 fw-bold small-text">Care Coordinator</div>
+                                    <small className="text-muted d-block">Level 3</small>
+                                </div>
+                                </div>
+
+                                <div className="col-6">
+                                <div className="step-item">
+                                    <div className="icon-circle main-icon">
+                                    <i className="fa-solid fa-user-tie"></i>
+                                    </div>
+                                    <div className="mt-2 fw-bold small-text">Manager</div>
+                                    <small className="text-muted d-block">Level 4</small>
+                                </div>
+                                </div>
+
+                            </div>
+                        </>
+
                     {loading ? (
                         /* Skeleton Placeholders */
                         [...Array(2)].map((_, index) => (

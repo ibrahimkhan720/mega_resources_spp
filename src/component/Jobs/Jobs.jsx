@@ -73,7 +73,7 @@ export class Jobs extends Component {
                     </div>
                     <div>
                       <h4 className="fw-bold mb-1 job-title-text">{job.title}</h4>
-                      <div className="job-meta-modern d-flex flex-wrap gap-3 text-muted">
+                      <div className="job-meta-modern d-flex flex-wrap gap-2 text-muted">
                         <span><i className="fa-solid fa-location-dot me-1"></i> Branch {job.branch?.name}</span>
                         <span><i className="fa-solid fa-clock me-1"></i> {job.type}</span>
                       </div>

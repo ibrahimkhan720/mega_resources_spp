@@ -87,7 +87,7 @@ const Mega_Olympics = () => {
   };
 
   return (
-    <div className="mega-container-wrapper" style={{ padding: "30px 6rem 0" }}>
+    <div className="mega-container-wrapper" >
       
       {/* News Bar */}
       <div className="mega-news-bar d-flex align-items-center justify-content-between mb-4">
@@ -103,7 +103,6 @@ const Mega_Olympics = () => {
       </div>
 
       <div className="row g-4">
-        {/* Meetings Section */}
         <div className="col-lg-6">
           <div className="mega-card" style={cardStyle}>
             <div className="card-header-flex" style={headerStyle}>
@@ -113,7 +112,6 @@ const Mega_Olympics = () => {
             
             <div className="meetings-content">
               {loading ? (
-                // Meeting Skeleton Loader
                 [...Array(4)].map((_, i) => (
                   <div key={i} className="meeting-row d-flex align-items-center mb-4 border-bottom pb-2">
                     <div className="skeleton" style={{ width: '60px', height: '60px', borderRadius: '8px' }}></div>

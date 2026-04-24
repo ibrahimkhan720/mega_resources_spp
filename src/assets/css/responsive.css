@@ -211,4 +211,8 @@
     .innerModal {
         padding: 1.5rem !important; 
     }
+
+    .news-headline {
+        font-size: 10px;
+    }
 }

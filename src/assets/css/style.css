@@ -226,7 +226,7 @@ body {
 
 /*mega olympics*/
 .mega-container-wrapper {
-    padding: 2px 50px;
+    padding: 30px 6rem 0;
     padding-left: 6rem;
     padding-right: 6rem;
 }
@@ -1506,7 +1506,7 @@ input::-webkit-inner-spin-button {
 
 .hr-phone-link {
     color: #00205b;
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 800;
     text-decoration: none;
     letter-spacing: 1px;

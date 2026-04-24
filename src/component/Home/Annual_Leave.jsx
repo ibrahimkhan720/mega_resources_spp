@@ -40,24 +40,20 @@ export class Annual_Leave extends Component {
 
   loadLeaveStats = async () => {
     try {
-      // Dono APIs ko parallel call kiya taake speed achi rahe
       const [profile, pointsRes] = await Promise.all([
         getStaffProfile(),
         getpoints()
       ]);
 
-      // 1. Available Leave fetching
       const available = Number(profile?.number_of_annual_leave) || 0;
 
-      // 2. Default Annual Leave fetching from getpoints()
-      // Screenshot ke mutabiq data 'info' array mein hai
+     
       const pointsList = pointsRes?.info || (Array.isArray(pointsRes) ? pointsRes : []);
       
       const defaultLeaveObj = pointsList.find(item => item.key === "default_annual_leave");
       const totalAllowedLeave = defaultLeaveObj ? Number(defaultLeaveObj.value) : 0;
 
-      // Logic: Taken = Total Allowed - Currently Available
-      // Agar total 26 hai aur available 20 hai, to taken 6 hui.
+      
       const taken = totalAllowedLeave > 0 ? (totalAllowedLeave - available) : 0;
 
       this.setState({
@@ -148,7 +144,6 @@ export class Annual_Leave extends Component {
 
     return (
       <div className="annual-leave-container">
-        {/* Statistics Card - Design remains untouched */}
         <div className="leave-card shadow-sm">
           <h5 className="leave-title">Annual Leave</h5>
           <div className="leave-content-row">
